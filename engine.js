@@ -1003,95 +1003,340 @@
   // Сделано так, чтобы потом легко дописывать новые показатели: просто добавляете новые строки в statsLines.
   function renderStats() {
 
-    var stats = computeStoryStats(STORY);
-    var errors = validateStory(STORY);
-    var textInfo = computeTextInfo(STORY);
-    var reach = findUnreachableScenes(STORY);
-    var cycles = findCyclesSCC(STORY);
-
-    var text = "";
-
-    text += "=== СТАТИСТИКА СЦЕНАРИЯ ===\n\n";
-
-    text += "Название: " + (STORY.meta && STORY.meta.title ? STORY.meta.title : "(без названия)") + "\n";
-
-    text += "Сцен: " + stats.sceneCount + "\n";
-    text += "Меню выбора: " + stats.choiceCount + "\n\n";
-
-    text += "Фоны (использовано): " + stats.uniqueBackgrounds + "\n";
-    text += "Персонажи (использовано): " + stats.uniqueCharacters + "\n";
-    text += "Всего изображений персонажей: " + stats.characterImageCount + "\n\n";
-
-    text += "Фраз персонажей: " + stats.sayCount + "\n";
-    text += "Авторских экранов: " + stats.textCount + "\n\n";
-
-    text += "Смен музыки (bgm): " + stats.bgmActions + "\n";
-    text += "Звуков (sfx): " + stats.sfxActions + "\n\n";
-
-
-    text += "=== ОБЪЁМ ТЕКСТА ===\n\n";
-
-    text += "Всего символов: " + textInfo.characters + "\n";
-    text += "Всего слов: " + textInfo.words + "\n\n";
-
-
-    text += "=== ИСПОЛЬЗОВАННЫЕ ФОНЫ ===\n";
-    text += stats.usedBackgroundIds.join("\n") + "\n\n";
-
-    text += "=== ИСПОЛЬЗОВАННЫЕ ПЕРСОНАЖИ ===\n";
-    text += stats.usedCharacterIds.join("\n") + "\n\n";
-
-
-    text += "=== ПРОВЕРКА СЦЕНАРИЯ ===\n";
-
-    if (errors.length === 0) {
-      text += "Ошибок не найдено.\n";
-    } else {
-      for (var i = 0; i < errors.length; i++) {
-        text += "- " + errors[i] + "\n";
-      }
-    }
-
-
+    // Показываем индикатор загрузки
+    elStatsBody.value = "Анализ файлов...";
     
-    text += "\n\n=== ДОП. АНАЛИЗ СЦЕНАРИЯ ===\n\n";
+    // Асинхронно проверяем файлы
+    checkAssetsFiles().then(fileStats => {
+      var stats = computeStoryStats(STORY);
+      var errors = validateStory(STORY);
+      var textInfo = computeTextInfo(STORY);
+      var reach = findUnreachableScenes(STORY);
+      var cycles = findCyclesSCC(STORY);
 
-    text += "Недостижимые сцены (" + reach.unreachable.length + "):\n";
-    text += (reach.unreachable.length ? reach.unreachable.join("\n") : "(нет)") + "\n\n";
+      var text = "";
 
-    text += "Циклы / SCC (" + cycles.length + "):\n";
-    if (!cycles.length) {
-      text += "(нет)\n";
-    } else {
-      for (var i = 0; i < cycles.length; i++) {
-        text += "- " + cycles[i].join(" -> ") + "\n";
+      text += "=== СТАТИСТИКА СЦЕНАРИЯ ===\n\n";
+      text += "Название: " + (STORY.meta && STORY.meta.title ? STORY.meta.title : "(без названия)") + "\n";
+      text += "Сцен: " + stats.sceneCount + "\n";
+      text += "Меню выбора: " + stats.choiceCount + "\n\n";
+
+
+      
+      text += "=== ПРОВЕРКА ФАЙЛОВ ===\n\n";
+      
+      // Отсутствующие файлы
+      if (fileStats.missing.length > 0) {
+        text += "❌ ОТСУТСТВУЮТ ФАЙЛЫ:\n";
+        fileStats.missing.forEach(item => {
+          text += `  ${item.path}\n`;
+          if (item.refs) {
+            item.refs.forEach(ref => text += `    используется в: ${ref}\n`);
+          }
+        });
+        text += "\n";
+      } else {
+        text += "✅ Все файлы найдены\n\n";
       }
-    }
+      
+      // Статистика по файлам
+      text += "=== СТАТИСТИКА ФАЙЛОВ ===\n\n";
+      text += "Всего файлов: " + fileStats.files.length + "\n";
+      
+      // Подсчет изображений и аудио
+      var imageCount = 0;
+      var audioCount = 0;
+      fileStats.files.forEach(f => {
+        if (f.path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) imageCount++;
+        else if (f.path.match(/\.(mp3|wav|ogg|flac|m4a)$/i)) audioCount++;
+      });
+      
+      text += "  Изображения: " + imageCount + "\n";
+      text += "  Аудио: " + audioCount + "\n\n";
+      
+      // Размеры
+      text += "Объем:\n";
+      text += "  Изображения: " + Math.round(fileStats.imagesSize / 1024) + " KB\n";
+      text += "  Аудио: " + Math.round(fileStats.audioSize / 1024) + " KB\n";
+      text += "  Всего: " + Math.round(fileStats.totalSize / 1024) + " KB (" + 
+        (fileStats.totalSize / 1024 / 1024).toFixed(2) + " MB)\n\n";
+      
+
+      text += "Фоны (использовано): " + stats.uniqueBackgrounds + "\n";
+      text += "Персонажи (использовано): " + stats.uniqueCharacters + "\n";
+      text += "Всего изображений персонажей: " + stats.characterImageCount + "\n\n";
+
+      text += "Фраз персонажей: " + stats.sayCount + "\n";
+      text += "Авторских экранов: " + stats.textCount + "\n\n";
+
+      text += "Смен музыки (bgm): " + stats.bgmActions + "\n";
+      text += "Звуков (sfx): " + stats.sfxActions + "\n\n";
 
 
-    // После вычисления stats, errors, textInfo, reach, cycles
-    // (примерно строка 720-730)
+      text += "=== ОБЪЁМ ТЕКСТА ===\n\n";
 
-    // Добавляем JSON сценария для отладки
-    text += "\n\n=== JSON СЦЕНАРИЯ ===\n\n";
-    try {
-      // Убираем циклические ссылки (если есть)
-      const storyJson = JSON.stringify(STORY, (key, value) => {
-        if (key === 'sceneMap') return undefined; // не сериализуем
-        return value;
-      }, 2);
-      text += storyJson;
-    } catch (e) {
-      text += "Ошибка сериализации: " + e.message;
-    }
+      text += "Всего символов: " + textInfo.characters + "\n";
+      text += "Всего слов: " + textInfo.words + "\n\n";
 
 
-    text += "\n\n=== DOT (GraphViz) ===\n\n";
-    text += buildDotGraph(STORY, reach.unreachable);
+      text += "=== ИСПОЛЬЗОВАННЫЕ ФОНЫ ===\n";
+      text += stats.usedBackgroundIds.join("\n") + "\n\n";
 
-    elStatsBody.value = text;
-    elStatsBody.scrollTop = 0;
+      text += "=== ИСПОЛЬЗОВАННЫЕ ПЕРСОНАЖИ ===\n";
+      text += stats.usedCharacterIds.join("\n") + "\n\n";
+
+
+      text += "=== ПРОВЕРКА СЦЕНАРИЯ ===\n";
+
+      if (errors.length === 0) {
+        text += "Ошибок не найдено.\n";
+      } else {
+        for (var i = 0; i < errors.length; i++) {
+          text += "- " + errors[i] + "\n";
+        }
+      }
+
+
+      
+      text += "\n\n=== ДОП. АНАЛИЗ СЦЕНАРИЯ ===\n\n";
+
+      text += "Недостижимые сцены (" + reach.unreachable.length + "):\n";
+      text += (reach.unreachable.length ? reach.unreachable.join("\n") : "(нет)") + "\n\n";
+
+      text += "Циклы / SCC (" + cycles.length + "):\n";
+      if (!cycles.length) {
+        text += "(нет)\n";
+      } else {
+        for (var i = 0; i < cycles.length; i++) {
+          text += "- " + cycles[i].join(" -> ") + "\n";
+        }
+      }
+
+
+      // После вычисления stats, errors, textInfo, reach, cycles
+      // (примерно строка 720-730)
+
+      // Добавляем JSON сценария для отладки
+      text += "\n\n=== JSON СЦЕНАРИЯ ===\n\n";
+      try {
+        // Убираем циклические ссылки (если есть)
+        const storyJson = JSON.stringify(STORY, (key, value) => {
+          if (key === 'sceneMap') return undefined; // не сериализуем
+          return value;
+        }, 2);
+        text += storyJson;
+      } catch (e) {
+        text += "Ошибка сериализации: " + e.message;
+      }
+
+
+      text += "\n\n=== DOT (GraphViz) ===\n\n";
+      text += buildDotGraph(STORY, reach.unreachable);
+
+      elStatsBody.value = text;
+      elStatsBody.scrollTop = 0;
+    });
   }
+
+
+ 
+  // Отброшен вариант: Проверка файлов через чтение первых 32 байт не возможно - ошибки статистики - указано, что файлов нет когда они есть
+
+    // Проверка файлов через Image/Audio объекты (работает в file://)
+  function checkAssetsFiles() {
+    return new Promise((resolve) => {
+      const result = {
+        missing: [],
+        totalSize: 0,
+        imagesSize: 0,
+        audioSize: 0,
+        files: []
+      };
+      
+      if (!STORY.assets) {
+        resolve(result);
+        return;
+      }
+      
+      // Собираем все файлы из ассетов
+      const allFiles = [];
+      
+      // Фоны
+      if (STORY.assets.backgrounds) {
+        Object.entries(STORY.assets.backgrounds).forEach(([id, path]) => {
+          allFiles.push({ id, path, type: 'image', category: 'bg', ref: id });
+        });
+      }
+      
+      // Персонажи (изображения)
+      if (STORY.assets.characters) {
+        Object.entries(STORY.assets.characters).forEach(([charId, char]) => {
+          if (char.images) {
+            Object.entries(char.images).forEach(([emotion, path]) => {
+              allFiles.push({ 
+                id: `${charId}_${emotion}`, 
+                path, 
+                type: 'image', 
+                category: 'char',
+                ref: `${charId} (${emotion})`
+              });
+            });
+          }
+        });
+      }
+      
+      // Аудио
+      if (STORY.assets.audio) {
+        Object.entries(STORY.assets.audio).forEach(([id, path]) => {
+          allFiles.push({ id, path, type: 'audio', category: 'audio', ref: id });
+        });
+      }
+      
+      if (allFiles.length === 0) {
+        resolve(result);
+        return;
+      }
+      
+      // Группируем по пути
+      const pathGroups = {};
+      allFiles.forEach(file => {
+        if (!pathGroups[file.path]) {
+          pathGroups[file.path] = [];
+        }
+        pathGroups[file.path].push(file);
+      });
+      
+      const uniquePaths = Object.keys(pathGroups);
+      let loadedCount = 0;
+      let errorCount = 0;
+      const totalPaths = uniquePaths.length;
+      
+      const fileResults = {};
+      
+      function checkComplete() {
+        if (loadedCount + errorCount === totalPaths) {
+          // Собираем результаты
+          uniquePaths.forEach(path => {
+            if (fileResults[path] && fileResults[path].success) {
+              result.files.push(fileResults[path].data);
+              
+              if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                result.imagesSize += fileResults[path].data.estimatedSize;
+              } else {
+                result.audioSize += fileResults[path].data.estimatedSize;
+              }
+              result.totalSize += fileResults[path].data.estimatedSize;
+            } else {
+              result.missing.push({
+                path: path,
+                refs: pathGroups[path].map(f => `${f.category}: ${f.ref}`)
+              });
+            }
+          });
+          
+          resolve(result);
+        }
+      }
+      
+      // Проверяем каждый уникальный файл
+      uniquePaths.forEach(path => {
+        if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+          // Проверка изображения
+          const img = new Image();
+          let isResolved = false;
+          
+          const timeout = setTimeout(() => {
+            if (!isResolved) {
+              isResolved = true;
+              errorCount++;
+              checkComplete();
+            }
+          }, 10000);
+          
+          img.onload = function() {
+            if (isResolved) return;
+            isResolved = true;
+            clearTimeout(timeout);
+            
+            // Оцениваем размер
+            const estimatedSize = img.width * img.height * 4;
+            
+            fileResults[path] = {
+              success: true,
+              data: {
+                path: path,
+                width: img.width,
+                height: img.height,
+                estimatedSize: estimatedSize,
+                estimatedSizeKB: Math.round(estimatedSize / 1024),
+                refs: pathGroups[path].map(f => `${f.category}: ${f.ref}`)
+              }
+            };
+            
+            loadedCount++;
+            checkComplete();
+          };
+          
+          img.onerror = function() {
+            if (isResolved) return;
+            isResolved = true;
+            clearTimeout(timeout);
+            
+            errorCount++;
+            checkComplete();
+          };
+          
+          img.src = path;
+        } else {
+          // Проверка аудио
+          const audio = new Audio();
+          let isResolved = false;
+          
+          const timeout = setTimeout(() => {
+            if (!isResolved) {
+              isResolved = true;
+              errorCount++;
+              checkComplete();
+            }
+          }, 10000);
+          
+          audio.oncanplaythrough = function() {
+            if (isResolved) return;
+            isResolved = true;
+            clearTimeout(timeout);
+            
+            fileResults[path] = {
+              success: true,
+              data: {
+                path: path,
+                duration: Math.round(audio.duration),
+                estimatedSize: (audio.duration || 60) * 16000,
+                estimatedSizeKB: Math.round(((audio.duration || 60) * 16000) / 1024),
+                refs: pathGroups[path].map(f => `${f.category}: ${f.ref}`)
+              }
+            };
+            
+            loadedCount++;
+            checkComplete();
+          };
+          
+          audio.onerror = function() {
+            if (isResolved) return;
+            isResolved = true;
+            clearTimeout(timeout);
+            
+            errorCount++;
+            checkComplete();
+          };
+          
+          audio.src = path;
+        }
+      });
+    });
+  }
+
+
+
 
 
 
