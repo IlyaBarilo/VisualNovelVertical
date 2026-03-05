@@ -152,6 +152,9 @@
     nextLocked: false
   };
 
+  // Флаг для отслеживания первого диалога
+  var isFirstDialog = true;
+
   // ---------- Аудио ----------
   // Один канал для фоновой музыки и отдельный для эффектов.
   var audio = {
@@ -259,6 +262,13 @@
     hideChoices();
     closeGameFrameVisualOnly();
     hideOverlay();
+
+    // Сбрасываем флаг первого диалога и класс диалога
+    isFirstDialog = true;
+    var dialogElement = document.getElementById('dialog');
+    if (dialogElement) {
+      dialogElement.classList.remove('no-hint', 'has-hint', 'has-name', 'no-name');
+    }
 
     // сброс к стартовой сцене
     state.sceneId = STORY.meta && STORY.meta.start ? STORY.meta.start : null;
@@ -556,17 +566,21 @@
     }
   }
 
-    function showDialog(name, text, color) {
+  function showDialog(name, text, color) {
     console.log(
       "[VN] dialog",
       name ? name : "(text)",
       text
     );
 
+    var dialogElement = document.getElementById('dialog');
+
     if (name && String(name).trim() !== "") {
       elName.textContent = name;
       elName.classList.remove("hidden");
-      
+      dialogElement.classList.add('has-name');
+      dialogElement.classList.remove('no-name');
+
       // Устанавливаем только цвет текста, без бордера и тени
       if (color) {
         elName.style.color = color;
@@ -581,9 +595,30 @@
     } else {
       elName.textContent = "";
       elName.classList.add("hidden");
+      dialogElement.classList.remove('has-name');
+      dialogElement.classList.add('no-name');
     }
     elText.textContent = text ? String(text) : "";
+
+    // Управление подсказкой и классом диалога
+    var hintElement = document.querySelector('.hint');
+    var dialogElement = document.getElementById('dialog');
+    
+    if (hintElement && dialogElement) {
+      if (isFirstDialog) {
+        hintElement.style.display = 'block';
+        dialogElement.classList.add('has-hint');
+        dialogElement.classList.remove('no-hint');
+        isFirstDialog = false;
+      } else {
+        hintElement.style.display = 'none';
+        dialogElement.classList.remove('has-hint');
+        dialogElement.classList.add('no-hint');
+      }
+    }
   }
+
+
 
   function showError(text) {
     setBackground(""); // не обязательно

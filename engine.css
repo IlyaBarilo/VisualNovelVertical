@@ -119,9 +119,9 @@ body {
   position: absolute;
   left: 10px;
   right: 10px;
-  bottom: var(--uiBottomOffset);
+  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
 
-  padding: 14px 14px 12px;
+  padding: 14px; /* одинаковые отступы со всех сторон */
   border-radius: 16px;
 
   background: rgba(0,0,0,0.60);
@@ -130,6 +130,17 @@ body {
   outline: none;
   font-size: 1em;
   z-index: 10;
+  transition: padding-bottom 0.2s ease; /* плавное изменение */
+}
+
+/* Диалог без подсказки */
+.dialog.no-hint {
+  padding-bottom: 14px; /* убираем дополнительное место под hint */
+}
+
+/* Диалог с подсказкой - добавляем место для hint */
+.dialog.has-hint {
+  padding-bottom: 12px; /* 14px (базовый padding) + 28px (высота hint с отступами) */
 }
 
 /* Когда показан выбор — диалог скрываем целиком */
@@ -159,6 +170,13 @@ body {
   margin-top: 10px;
   font-size: 0.75em;
   opacity: 0.65;
+  display: none; /* по умолчанию скрыта */
+  transition: opacity 0.2s ease;
+}
+
+/* Когда hint видим, добавляем отступ */
+.hint[style*="display: block"] {
+  margin-top: 10px;
 }
 
 /* Выбор */
@@ -384,3 +402,12 @@ body {
   }
 }
 
+/* Диалог с именем персонажа - стандартный отступ */
+.dialog.has-name {
+  padding-top: 14px; /* стандартный отступ */
+}
+
+/* Диалог без имени персонажа - увеличенный отступ */
+.dialog.no-name {
+  padding-top: 32px; /* увеличьте это значение для нужного отступа */
+}
