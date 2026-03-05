@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VN Engine (Offline)</title>
+
+  <link rel="stylesheet" href="engine.css" />
+</head>
+<body>
+
+  <!--
+    Сцена:
+    - bgLayer: фон на весь экран с object-fit: cover
+    - charLayer: персонаж поверх фона
+    - overlay: затемнение/переходы (по желанию)
+    - ui: диалог/меню/кнопки
+  -->
+  <div id="app" class="app">
+
+    <!-- НОВОЕ: панель статистики (со скроллом) -->
+    <div id="statsPanel" class="statsPanel hidden" aria-label="Statistics">
+      <div class="statsCard">
+        <div class="statsHeader">
+          <div class="statsTitle">Статистика сценария</div>
+          <button id="btnCloseStats" class="btn" type="button" aria-label="Close stats">✕</button>
+        </div>
+        <textarea id="statsBody" class="statsBody"></textarea>
+      </div>
+    </div>
+
+    <div id="stage" class="stage">
+      <img id="bgLayer" class="bg" alt="" />
+
+      <!-- ДОБАВЬТЕ ЭТИ СТРОКИ -->
+      <div id="blurBgLayer" class="blur-bg-layer hidden">
+        <img id="blurBgImage" class="blur-bg-image" alt="" />
+      </div>
+      <!-- КОНЕЦ ДОБАВЛЕННОГО БЛОКА -->
+       
+      <img id="charLayer" class="char hidden" alt="" />
+      <div id="overlay" class="overlay hidden"></div>
+    </div>
+
+    <!-- Верхняя панель -->
+    <div class="topbar">
+      <div class="topbar-left">
+        
+      </div>
+
+      <div class="topbar-right">
+        <!-- Mute -->
+        <button id="btnMute" class="btn" type="button" aria-label="Mute">🔊</button>
+
+        <!-- Volume -->
+        <input id="volume" class="slider" type="range" min="0" max="100" value="80" />
+
+        <!-- НОВОЕ: статистика/настройки -->
+        <button id="btnStats" class="btn" type="button" aria-label="Stats">📊</button>
+
+        <!-- Restart -->
+        <button id="btnRestart" class="btn" type="button">Домой</button>
+      </div>
+    </div>
+
+    <!-- Диалоговое окно -->
+    <div id="dialog" class="dialog" role="button" tabindex="0" aria-label="Next">
+      <div id="nameBox" class="name hidden"></div>
+      <div id="textBox" class="text"></div>
+      <div class="hint">Нажмите для продолжения</div>
+    </div>
+
+    <!-- Контейнер выбора -->
+    <div id="choices" class="choices hidden" aria-label="Choices"></div>
+
+    <!-- Контейнер мини-игры (iframe) -->
+    <div id="gameModal" class="gameModal hidden" aria-label="Game">
+      <div class="gameFrameWrap">
+        <iframe id="gameFrame" class="gameFrame" title="Mini game" src="about:blank"></iframe>
+        <div class="gameControls">
+          <button id="btnCloseGame" class="btn" type="button">Закрыть игру</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="story.js"></script>
+  <!-- Загрузчик сценария из TXT -->
+  <script src="story-loader.js"></script>
+  <!-- Движок (будет ждать window.STORY) -->
+  <script src="engine.js"></script>
+</body>
+</html>

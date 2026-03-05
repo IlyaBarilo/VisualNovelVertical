@@ -1,0 +1,386 @@
+/* Базовый сброс */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
+body { background: #000; color: #fff; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+body {
+  overflow: hidden; /* чтобы не появлялся “лишний низ” из-за прокрутки */
+}
+
+:root{
+  --uiScale: 1.5;            /* общий множитель интерфейса */
+  --baseFontPx: 16px;      /* базовый размер */
+  --uiBottomOffset: calc(14px + env(safe-area-inset-bottom, 0px));
+  --topSpacing: 0px;      /* добавить сюда */
+  --bottomSpacing: 0px;   /* добавить сюда */
+}
+
+.app{
+  font-size: calc(var(--baseFontPx) * var(--uiScale));
+}
+
+/* Контейнер приложения */
+.app {
+  position: relative;
+  width: 100%;
+  
+  height: 100vh;   /* fallback */
+  height: 100svh;  /* стабильная высота на мобильных (Safari/Chrome) */
+  height: 100dvh;  /* динамическая высота: учитывает панели браузера */
+
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Фон: растягиваем на весь экран, центрируем, crop по краям */
+.bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--topSpacing);
+  bottom: var(--bottomSpacing);
+  width: 100%;
+  height: calc(100% - var(--topSpacing) - var(--bottomSpacing));
+  object-fit: cover;
+  object-position: center;
+  z-index: 2;
+}
+
+/* Персонаж */
+.char {
+  position: absolute;
+  left: 50%;
+  bottom: var(--bottomSpacing); /* поднимаем над нижним отступом */
+  transform: translateX(-50%);
+  width: min(95vw, 800px);
+  height: 75vh;
+  object-fit: contain;      /* персонажа обычно не режем */
+  object-position: center bottom;
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,0.55));
+  z-index: 3; /* ВЫШЕ всего */
+}
+
+/* Затемнение/оверлей */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 4; /* ВЫШЕ персонажа если нужно */
+}
+
+/* Верхняя панель */
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 10px;
+  gap: 10px;
+
+  background: linear-gradient(to bottom, rgba(0,0,0,0.65), rgba(0,0,0,0));
+  z-index: 20;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 0.85em;
+  opacity: 0.9;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* Кнопки */
+.btn {
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.85em;
+}
+
+/* Слайдер */
+.slider {
+  width: 80px;
+}
+
+/* Диалог */
+.dialog {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: var(--uiBottomOffset);
+
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+
+  background: rgba(0,0,0,0.60);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(4px);
+  outline: none;
+  font-size: 1em;
+  z-index: 10;
+}
+
+/* Когда показан выбор — диалог скрываем целиком */
+.dialog.hiddenByChoices {
+  display: none !important;
+}
+
+.name {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+.text {
+  font-size: 1em;
+  line-height: 1.35;
+  min-height: 2.4em;
+  white-space: pre-wrap;
+}
+
+.hint {
+  margin-top: 10px;
+  font-size: 0.75em;
+  opacity: 0.65;
+}
+
+/* Выбор */
+.choices {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+
+  top: 10px;                       /* контейнер растягиваем по высоте */
+  bottom: var(--uiBottomOffset);   /* низ = тот же отступ, что у диалога */
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;       /* КЛЮЧ: прижимаем кнопки к низу */
+  gap: 10px;
+
+  z-index: 11;
+}
+
+.choiceBtn {
+  width: 100%;
+  text-align: left;
+  padding: 12px 12px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 0.95em;
+}
+
+/* Модалка мини-игры */
+.gameModal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  z-index: 60;
+}
+
+.gameFrameWrap {
+  width: 100%;
+  height: 100%;
+  max-width: 900px;
+  max-height: 1600px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gameFrame {
+  width: 100%;
+  flex: 1;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 14px;
+  background: #111;
+}
+
+.gameControls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Утилиты */
+.hidden { display: none !important; }
+
+/* Для очень узких/высоких окон можно чуть уменьшить текст */
+@media (max-aspect-ratio: 9/16) {
+  .text { font-size: 0.95em; }
+  .choices { bottom: var(--uiBottomOffset); }
+}
+
+/* ===== Панель статистики ===== */
+
+.statsPanel {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  z-index: 50;
+}
+
+.statsCard {
+  width: 100%;
+  height: 100%;
+  max-width: 900px;
+  max-height: 1600px;
+  border-radius: 16px;
+  background: rgba(0,0,0,0.70);
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.statsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.statsTitle {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.statsBody {
+
+  flex: 1;                 /* занимает всё свободное место */
+  width: 100%;
+
+  padding: 14px;
+
+  overflow: auto;
+  resize: none;
+
+  background: rgba(0,0,0,0.6);
+  border: none;
+  outline: none;
+
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+
+  font-family: Consolas, monospace;
+}
+
+/* небольшая “табличная” разметка строк */
+.statsLine {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.statsKey {
+  opacity: 0.75;
+  font-size: 12px;
+}
+
+.statsVal {
+  font-weight: 700;
+  font-size: 15px;
+  margin-top: 2px;
+}
+
+.title {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    padding: 6px;
+  }
+
+  .slider {
+    width: 60px;
+  }
+
+  .btn {
+    padding: 6px 8px;
+  }
+}
+
+/* Контейнер для размытого фона */
+.blur-bg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* ПОДНЯЛИ: между stage и bg */
+  overflow: hidden;
+  pointer-events: none;
+  background: #000; /* черный фон на всякий случай */
+}
+
+.blur-bg-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* растягиваем на всю высоту */
+  object-position: center;
+  filter: blur(50px) brightness(0.9);
+  opacity: 0.95;
+  transform: scale(1.2); /* увеличиваем чтобы скрыть края */
+}
+
+/* Сцена */
+.stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  background: transparent;
+}
+
+/* Отступы для интерфейса - применяем к конкретным элементам */
+.dialog {
+  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
+  z-index: 10;
+}
+
+.choices {
+  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
+}
+
+.topbar {
+  top: var(--topSpacing); /* Добавляем отступ сверху для верхней панели */
+}
+
+/* Для очень узких экранов */
+@media (max-aspect-ratio: 9/16) {
+  .choices { 
+    bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing)); 
+    z-index: 10;
+  }
+}
+
