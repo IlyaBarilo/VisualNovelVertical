@@ -24,7 +24,7 @@ branchYard = assets/bg_uni_yard_night.jpg
 anna image neutral = assets/ch_anna_neutral.png
 anna name = "Анна"
 anna color = #0F0
-igor image smile = assets/ch_igor_smile.png
+igor image smile = assets/ch_igor_smile_smallresolution.png
 igor name = "Игорь"
 igor color = #F00
 
