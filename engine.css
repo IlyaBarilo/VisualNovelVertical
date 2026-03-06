@@ -1,4 +1,4 @@
-вш/* Базовый сброс */
+/* Базовый сброс */
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; padding: 0; }
 body { background: #000; color: #fff; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
@@ -8,12 +8,141 @@ body {
 }
 
 :root{
-  --uiScale: 2;            /* общий множитель интерфейса */ /* Основной расчет идет в JS и берется из переменной UI_FONT_SCALE */
-  --baseFontPx: 16px;      /* базовый размер */
-  --baseFontSize: calc(var(--baseFontPx) * var(--uiScale)); /* вычисляемый размер */
+  /* =========================================================
+     ГЛОБАЛЬНАЯ БАЗА ИНТЕРФЕЙСА
+     Править здесь, если весь UI кажется слишком мелким/крупным.
+     --uiScale и --baseFontSize рассчитываются в JS.
+     ========================================================= */
+  --uiScale: 2;
+  --baseFontPx: 16px;
+  --baseFontSize: calc(var(--baseFontPx) * var(--uiScale));
+
+  /*
+     БЫСТРАЯ РУЧНАЯ НАСТРОЙКА ПОД ЭКРАН:
+     1) Если весь интерфейс мелкий/крупный — правьте UI_FONT_SCALE в engine.js.
+     2) Если тесная верхняя панель — правьте --topbar-* и --control-*.
+     3) Если узкое окно диалога — правьте --dialog-* и --name-*.
+     4) Если мелкие варианты выбора — правьте --choices-* и --choice-*.
+  */
+
+  /* Технические переменные сцены: задаются JS и/или сценарием */
   --uiBottomOffset: calc(14px + env(safe-area-inset-bottom, 0px));
-  --topSpacing: 0px;      
-  --bottomSpacing: 0px;   
+  --topSpacing: 0px;
+  --bottomSpacing: 0px;
+
+  /* Базовые токены интерфейса */
+  --ui-font-base: 1rem;
+  --ui-space: 1rem;
+  --ui-radius: 1rem;
+  --ui-border-width: 1px;
+  --ui-control-min-height: 2.5rem;
+  --ui-touch-min-height: 3rem;
+
+  /* =========================================================
+     ВЕРХНЯЯ ПАНЕЛЬ
+     Править здесь, если topbar тесная, кнопки панели мелкие,
+     а слайдер слишком короткий.
+     ========================================================= */
+  --topbar-font-size: 1.16rem;
+  --topbar-padding-y: 0.78rem;
+  --topbar-padding-x: 0.95rem;
+  --topbar-gap: 0.80rem;
+  --topbar-title-size: 0.85em;
+  --topbar-control-gap: 0.75rem;
+  --topbar-slider-width: 7.75rem;
+  --topbar-slider-height: 1.55rem;
+
+  /* =========================================================
+     ОБЫЧНЫЕ КНОПКИ / КОНТРОЛЫ
+     Править здесь, если кнопки в панели или модалках кажутся
+     слишком узкими, низкими или слабо читаемыми.
+     ========================================================= */
+  --control-font-size: 0.95em;
+  --control-padding-y: 0.72em;
+  --control-padding-x: 1.12em;
+  --control-radius: 0.78em;
+  --control-border-width: 1px;
+  --control-min-height: 2.85em;
+
+  /* =========================================================
+     ДИАЛОГОВОЕ ОКНО
+     Править здесь, если текст нормальный, а само окно кажется
+     слишком тесным, низким или близким к краям.
+     ========================================================= */
+  --dialog-font-size: 1rem;
+  --dialog-side-offset: 1.00rem;
+  --dialog-padding: 0.92em;
+  --dialog-radius: 1.05em;
+  --dialog-text-line-height: 1.4;
+  --dialog-text-min-height: 3.0em;
+  --dialog-hint-gap: 0.50em;
+  --dialog-padding-bottom-no-hint: 0.80em;
+  --dialog-padding-bottom-with-hint: 0.65em;
+  --dialog-name-padding-top: 0.60em;
+  --dialog-no-name-padding-top: 1.10em;
+
+  /* =========================================================
+     ИМЯ ПЕРСОНАЖА
+     Править здесь, если поле имени слишком маленькое,
+     узкое или с недостаточным "воздухом".
+     ========================================================= */
+  --name-font-size: 0.98em;
+  --name-padding-y: 0.46em;
+  --name-padding-x: 0.96em;
+  --name-radius: 0.68em;
+  --name-margin-bottom: 0.55em;
+  --name-min-height: 1.9em;
+
+  /* =========================================================
+     ВАРИАНТЫ ВЫБОРА
+     Править здесь, если кнопки выбора выглядят низкими,
+     тесными или прилипшими друг к другу.
+     ========================================================= */
+  --choices-side-offset: 1.00rem;
+  --choices-top-offset: 1.00rem;
+  --choices-gap: 0.85rem;
+  --choice-font-size: 1.02em;
+  --choice-padding-y: 1.00em;
+  --choice-padding-x: 1.15em;
+  --choice-radius: 0.95em;
+  --choice-min-height: 3.6em;
+
+  /* =========================================================
+     МОДАЛКИ / МИНИ-ИГРЫ / СТАТИСТИКА
+     Править здесь, если полноэкранные панели выглядят слишком
+     тесными или наоборот слишком раздутыми.
+     ========================================================= */
+  --modal-padding: 0.90rem;
+  --modal-gap: 0.80rem;
+  --modal-radius: 1.00rem;
+  --modal-frame-max-width: 900px;
+  --modal-frame-max-height: 1600px;
+  --stats-header-gap: 0.65rem;
+  --stats-title-size: 1.05rem;
+  --stats-body-font-size: 1rem;
+  --stats-key-size: 0.75rem;
+  --stats-value-size: 0.95rem;
+
+  /* =========================================================
+     КОРРЕКЦИЯ ДЛЯ УЗКИХ/НЕБОЛЬШИХ ЭКРАНОВ
+     Править здесь, если на маленьких экранах UI всё ещё выглядит
+     слишком тесным или крупным.
+     ========================================================= */
+  --compact-topbar-padding-y: 0.35rem;
+  --compact-topbar-padding-x: 0.45rem;
+  --compact-topbar-slider-width: 4.25rem;
+  --compact-topbar-slider-height: 1.05rem;
+  --compact-control-padding-y: 0.40em;
+  --compact-control-padding-x: 0.55em;
+  --compact-control-radius: 0.50em;
+  --compact-control-font-size: 0.78em;
+  --compact-dialog-side-offset: 0.40rem;
+  --compact-dialog-padding: 0.55em;
+  --compact-choices-side-offset: 0.40rem;
+  --compact-choices-gap: 0.40rem;
+  --compact-choice-padding-y: 0.55em;
+  --compact-choice-padding-x: 0.65em;
+  --compact-choice-font-size: 0.88em;
 }
 
 /* Контейнер приложения */
@@ -81,8 +210,9 @@ body {
   align-items: center;
   justify-content: space-between;
 
-  padding: 0.5rem 0.6rem;
-  gap: 0.6rem;
+  padding: var(--topbar-padding-y) var(--topbar-padding-x);
+  gap: var(--topbar-gap);
+  font-size: var(--topbar-font-size);
 
   background: linear-gradient(to bottom, rgba(0,0,0,0.65), rgba(0,0,0,0));
   z-index: 20;
@@ -90,64 +220,64 @@ body {
 
 .title {
   font-weight: 700;
-  font-size: 0.85em;
+  font-size: var(--topbar-title-size);
   opacity: 0.9;
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 0.5em;
-  z-index: 10;
+  gap: var(--topbar-control-gap);
   flex-wrap: wrap;
+  z-index: 10;
 }
 
 /* Кнопки */
 .btn {
-  background: rgba(0,0,0,0.55);
-  color: #fff;
-  border: max(1px, 0.05em) solid rgba(255,255,255,0.18);
-  border-radius: 0.65em;
-  padding: 0.55em 0.9em;
-  font-size: 0.85em;
-  line-height: 1.1;
-  min-height: 2.3em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: var(--control-min-height);
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: var(--control-border-width) solid rgba(255,255,255,0.18);
+  border-radius: var(--control-radius);
+  padding: var(--control-padding-y) var(--control-padding-x);
+  font-size: var(--control-font-size);
+  line-height: 1.1;
 }
 
 /* Слайдер */
 .slider {
-  width: 6em;
-  height: 1.6em;
+  width: var(--topbar-slider-width);
+  height: var(--topbar-slider-height);
 }
 
 /* Диалог */
 .dialog {
   position: absolute;
-  left: 0.7em;
-  right: 0.7em;
+  left: var(--dialog-side-offset);
+  right: var(--dialog-side-offset);
   bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
-  padding: 0.7em;
-  border-radius: 0.85em;
+  padding: var(--dialog-padding);
+  border-radius: var(--dialog-radius);
   background: rgba(0,0,0,0.60);
-  border: max(1px, 0.04em) solid rgba(255,255,255,0.14);
+  border: var(--ui-border-width) solid rgba(255,255,255,0.14);
   backdrop-filter: blur(4px);
   outline: none;
-  font-size: 1rem;
+  font-size: var(--dialog-font-size);
   z-index: 10;
   transition: padding-bottom 0.2s ease;
 }
 
 /* Диалог без подсказки */
 .dialog.no-hint {
-   padding-bottom: 0.7em;
+   padding-bottom: var(--dialog-padding-bottom-no-hint);
 }
 
 /* Диалог с подсказкой - добавляем место для hint */
 .dialog.has-hint {
-  padding-bottom: 0.5em;
+  padding-bottom: var(--dialog-padding-bottom-with-hint);
 }
 
 /* Когда показан выбор — диалог скрываем целиком */
@@ -155,30 +285,30 @@ body {
   display: none !important;
 }
 
-/* Имя персонажа */
+/* Имя персонажа - ОСТАВЛЯЕМ rem, так как должно быть фиксировано относительно базового */
 .name {
   display: inline-block;
-  padding: 0.35em 0.75em;
-  border-radius: 0.55em;
+  min-height: var(--name-min-height);
+  padding: var(--name-padding-y) var(--name-padding-x);
+  border-radius: var(--name-radius);
   background: rgba(255,255,255,0.10);
-  border: max(1px, 0.05em) solid rgba(255,255,255,0.12);
-  margin-bottom: 0.45em;
+  border: var(--ui-border-width) solid rgba(255,255,255,0.12);
+  margin-bottom: var(--name-margin-bottom);
   font-weight: 700;
-  font-size: 0.9em;
+  font-size: var(--name-font-size);
   line-height: 1.2;
-  min-height: 1.9em;
 }
 
 .text {
-  font-size: 1rem; /* rem - базовый размер */
-  line-height: 1.4;
-  min-height: 2.4rem; /* em - относительно текущего шрифта */
+  font-size: 1em;
+  line-height: var(--dialog-text-line-height);
+  min-height: var(--dialog-text-min-height);
   white-space: pre-wrap;
 }
 
 .hint {
-  margin-top: 0.5rem;
-  font-size: 0.7em; /* ВОЗВРАЩАЕМ em - масштабируется относительно диалога */
+  margin-top: var(--dialog-hint-gap);
+  font-size: 0.7em;
   opacity: 0.65;
   display: none;
   transition: opacity 0.2s ease;
@@ -186,37 +316,37 @@ body {
 
 /* Когда hint видим, добавляем отступ */
 .hint[style*="display: block"] {
-  margin-top: 10px;
+  margin-top: var(--dialog-hint-gap);
 }
 
 /* Выбор */
 .choices {
   position: absolute;
-  left: 0.8em;
-  right: 0.8em;
-  top: 0.8em;
+  left: var(--choices-side-offset);
+  right: var(--choices-side-offset);
+  top: var(--choices-top-offset);
   bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
 
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 0.6em;
+  gap: var(--choices-gap);
+  font-size: var(--dialog-font-size);
 
   z-index: 11;
-  font-size: 1em;
 }
 
 .choiceBtn {
   width: 100%;
+  min-height: var(--choice-min-height);
   text-align: left;
-  padding: 0.8em 1em;
-  border-radius: 0.8em;
+  padding: var(--choice-padding-y) var(--choice-padding-x);
+  border-radius: var(--choice-radius);
   background: rgba(0,0,0,0.55);
-  border: max(1px, 0.05em) solid rgba(255,255,255,0.18);
+  border: var(--ui-border-width) solid rgba(255,255,255,0.18);
   color: #fff;
-  font-size: 0.95em;
+  font-size: var(--choice-font-size);
   line-height: 1.3;
-  min-height: 3em;
 }
 
 /* Модалка мини-игры */
@@ -227,25 +357,25 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: var(--modal-padding);
   z-index: 60;
 }
 
 .gameFrameWrap {
   width: 100%;
   height: 100%;
-  max-width: 900px;
-  max-height: 1600px;
+  max-width: var(--modal-frame-max-width);
+  max-height: var(--modal-frame-max-height);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--modal-gap);
 }
 
 .gameFrame {
   width: 100%;
   flex: 1;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 14px;
+  border: var(--ui-border-width) solid rgba(255,255,255,0.18);
+  border-radius: var(--modal-radius);
   background: #111;
 }
 
@@ -259,8 +389,8 @@ body {
 
 /* Для очень узких/высоких окон можно чуть уменьшить текст */
 @media (max-aspect-ratio: 9/16) {
-  .text { font-size: 0.95em; }
-  .choices { bottom: var(--uiBottomOffset); }
+  .text { font-size: 0.97em; }
+  .choices { bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing)); }
 }
 
 /* ===== Панель статистики ===== */
@@ -272,18 +402,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: var(--modal-padding);
   z-index: 50;
 }
 
 .statsCard {
   width: 100%;
   height: 100%;
-  max-width: 900px;
-  max-height: 1600px;
-  border-radius: 16px;
+  max-width: var(--modal-frame-max-width);
+  max-height: var(--modal-frame-max-height);
+  border-radius: calc(var(--modal-radius) + 0.1rem);
   background: rgba(0,0,0,0.70);
-  border: 1px solid rgba(255,255,255,0.18);
+  border: var(--ui-border-width) solid rgba(255,255,255,0.18);
   backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
@@ -294,22 +424,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.12);
+  gap: var(--stats-header-gap);
+  padding: var(--modal-padding);
+  border-bottom: var(--ui-border-width) solid rgba(255,255,255,0.12);
 }
 
 .statsTitle {
   font-weight: 800;
-  font-size: 16px;
+  font-size: var(--stats-title-size);
 }
 
 .statsBody {
 
-  flex: 1;                 /* занимает всё свободное место */
+  flex: 1;
   width: 100%;
 
-  padding: 14px;
+  padding: calc(var(--modal-padding) + 0.1rem);
 
   overflow: auto;
   resize: none;
@@ -319,7 +449,7 @@ body {
   outline: none;
 
   color: #fff;
-  font-size: 14px;
+  font-size: var(--stats-body-font-size);
   line-height: 1.4;
 
   font-family: Consolas, monospace;
@@ -327,18 +457,18 @@ body {
 
 /* небольшая “табличная” разметка строк */
 .statsLine {
-  padding: 8px 0;
+  padding: 0.5rem 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .statsKey {
   opacity: 0.75;
-  font-size: 12px;
+  font-size: var(--stats-key-size);
 }
 
 .statsVal {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--stats-value-size);
   margin-top: 2px;
 }
 
@@ -346,38 +476,30 @@ body {
   display: none;
 }
 
-/* Медиа-запрос для мобильных устройств */
+/* Медиа-запрос для мобильных устройств
+   Здесь не задаём новые случайные размеры, а только
+   слегка поджимаем те же токены системы. */
 @media (max-width: 600px) {
-  .topbar {
-    padding: 0.3rem 0.4rem;
-  }
+  :root {
+    --topbar-padding-y: var(--compact-topbar-padding-y);
+    --topbar-padding-x: var(--compact-topbar-padding-x);
+    --topbar-slider-width: var(--compact-topbar-slider-width);
+    --topbar-slider-height: var(--compact-topbar-slider-height);
 
-  .slider {
-    width: 4rem;
-    height: 1rem;
-  }
+    --control-padding-y: var(--compact-control-padding-y);
+    --control-padding-x: var(--compact-control-padding-x);
+    --control-radius: var(--compact-control-radius);
+    --control-font-size: var(--compact-control-font-size);
 
-  .btn {
-    padding: 0.3rem 0.4rem;
-    border-radius: 0.4rem;
-    font-size: 0.7rem;
-  }
+    --dialog-side-offset: var(--compact-dialog-side-offset);
+    --dialog-padding: var(--compact-dialog-padding);
 
-  .dialog {
-    left: 0.3rem;                /* ИСПРАВЛЕНО */
-    right: 0.3rem;               /* ИСПРАВЛЕНО */
-    padding: 0.4rem;             /* ИСПРАВЛЕНО */
-  }
-  
-  .choices {
-    left: 0.3rem;                /* ИСПРАВЛЕНО */
-    right: 0.3rem;               /* ИСПРАВЛЕНО */
-    gap: 0.3rem;                 /* ИСПРАВЛЕНО */
-  }
-  
-  .choiceBtn {
-    padding: 0.4rem 0.5rem;      /* ИСПРАВЛЕНО */
-    font-size: 0.8rem;           /* ИСПРАВЛЕНО */
+    --choices-side-offset: var(--compact-choices-side-offset);
+    --choices-gap: var(--compact-choices-gap);
+
+    --choice-padding-y: var(--compact-choice-padding-y);
+    --choice-padding-x: var(--compact-choice-padding-x);
+    --choice-font-size: var(--compact-choice-font-size);
   }
 }
 
@@ -413,14 +535,16 @@ body {
   background: transparent;
 }
 
-/* Отступы для интерфейса - применяем к конкретным элементам */
-
+/*
+   Сценические отступы из story.js / метаданных сцены.
+   Здесь руками обычно править не нужно: они приходят из top_spacing/bottom_spacing.
+*/
 .choices {
   bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
 }
 
 .topbar {
-  top: var(--topSpacing); /* Добавляем отступ сверху для верхней панели */
+  top: var(--topSpacing); /* Верхнюю панель поднимаем вместе со сценой */
 }
 
 /* Для очень узких экранов */
@@ -431,12 +555,11 @@ body {
   }
 }
 
-/* Диалог с именем персонажа */
+/* Состояния диалога: отдельные токены для ручной правки */
 .dialog.has-name {
-  padding-top: 0.5rem;           /* ИСПРАВЛЕНО: было calc(8px * var(--uiScale)) */
+  padding-top: var(--dialog-name-padding-top);
 }
 
-/* Диалог без имени персонажа - увеличенный отступ */
 .dialog.no-name {
-  padding-top: 2rem;             /* ИСПРАВЛЕНО: было 32px */
+  padding-top: var(--dialog-no-name-padding-top);
 }

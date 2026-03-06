@@ -1131,91 +1131,35 @@ profiler.mark('Скрипт начал загрузку');
 // =========================================================
 
 function applyUiScale() {
-    console.log('[SCALE] ========== APPLY UI SCALE START ==========');
-    
-    // автоматический коэффициент по высоте экрана
+    // JS считает только корневой масштаб,
+    // а размеры конкретных компонентов берутся из CSS-токенов.
     var autoScale = window.innerHeight / UI_REFERENCE_HEIGHT;
-    console.log('[SCALE] window.innerHeight:', window.innerHeight);
-    console.log('[SCALE] UI_REFERENCE_HEIGHT:', UI_REFERENCE_HEIGHT);
-    console.log('[SCALE] raw autoScale:', autoScale);
-
-    // ограничиваем чтобы интерфейс не ломался
     autoScale = clamp(autoScale, 0.5, 10);
-    console.log('[SCALE] clamped autoScale:', autoScale);
 
-    // итоговый масштаб
-    var finalScale = Math.max(0.75, UI_FONT_SCALE * autoScale); // Только нижняя граница
-    console.log('[SCALE] UI_FONT_SCALE:', UI_FONT_SCALE);
-    console.log('[SCALE] finalScale:', finalScale);
+    var finalScale = Math.max(0.75, UI_FONT_SCALE * autoScale);
 
-    // применяем к CSS переменной
     document.documentElement.style.setProperty("--uiScale", finalScale);
-    console.log('[SCALE] Set --uiScale CSS variable to:', finalScale);
-    
-    // ВАЖНО: обновляем базовый размер шрифта
-    var baseFontPx = 16; // должно совпадать с --baseFontPx в CSS
+
+    // Должно совпадать с --baseFontPx в CSS.
+    var baseFontPx = 16;
     var baseFontSize = baseFontPx * finalScale;
     document.documentElement.style.setProperty("--baseFontSize", baseFontSize + 'px');
-    
-    console.log('[SCALE] Set --uiScale:', finalScale);
-    console.log('[SCALE] Set --baseFontSize:', baseFontSize + 'px');
 
-    // Проверяем, какое значение реально в CSS
-    var computedScale = getComputedStyle(document.documentElement).getPropertyValue('--uiScale').trim();
-    console.log('[SCALE] Computed --uiScale from CSS:', computedScale);
-    
-    // Принудительно применяем масштаб к элементам интерфейса
-    var dialog = document.getElementById('dialog');
-    var choices = document.getElementById('choices');
-    var topbar = document.querySelector('.topbar');
-    var nameBox = document.getElementById('nameBox');
-    var textBox = document.getElementById('textBox');
-
-    var baseFont = 16;
-    var dialogFontSize = (baseFont * finalScale) + 'px';
-    
-    console.log('[SCALE] baseFont:', baseFont);
-    console.log('[SCALE] dialogFontSize:', dialogFontSize);
-    
-    if (dialog) {
-        dialog.style.fontSize = dialogFontSize;
-    }
-
-    if (choices) {
-        choices.style.fontSize = dialogFontSize;
-    }
-
-    if (topbar) {
-        topbar.style.fontSize = (14 * finalScale) + 'px';
-    }
-
-    if (nameBox) {
-        nameBox.style.fontSize = (15 * finalScale) + 'px';
-    }
-
-    if (textBox) {
-        textBox.style.fontSize = dialogFontSize;
-    }
-    
-    console.log('[SCALE] ========== APPLY UI SCALE END ==========');
+    console.log('[SCALE] uiScale:', finalScale, 'baseFontSize:', baseFontSize + 'px');
 }
+
 
 // Вызываем при загрузке
 setTimeout(function() {
-    console.log('[SCALE] Initial applyUiScale()');
     applyUiScale();
 }, 100);
 
 // Также добавляем логи для события resize
 window.addEventListener("resize", function() {
-    console.log('[SCALE] Window resize event, height:', window.innerHeight);
     applyUiScale();
     adjustCharacterScale();
 });
 
-
-  console.log('[Engine] Dialog font size:', window.getComputedStyle(elDialog).fontSize);
-  console.log('[Engine] Button font size:', window.getComputedStyle(btnMute).fontSize);
 
   // =========================================================
   // ДИНАМИЧЕСКОЕ МАСШТАБИРОВАНИЕ ПЕРСОНАЖЕЙ
@@ -2506,115 +2450,5 @@ function applySpacingSettings() {
     }
   }
 
-// Отслеживаем изменения CSS переменной --uiScale
-function watchUIScale() {
-    var lastScale = null;
-    setInterval(function() {
-        var currentScale = getComputedStyle(document.documentElement).getPropertyValue('--uiScale').trim();
-        if (lastScale !== currentScale) {
-            console.log('[SCALE WATCH] --uiScale changed from', lastScale, 'to', currentScale);
-            lastScale = currentScale;
-            
-            // Проверяем фактические размеры элементов
-            var dialog = document.getElementById('dialog');
-            if (dialog) {
-                console.log('[SCALE WATCH] Dialog actual font size:', getComputedStyle(dialog).fontSize);
-                console.log('[SCALE WATCH] Dialog actual padding:', getComputedStyle(dialog).padding);
-            }
-            
-            var btn = document.querySelector('.btn');
-            if (btn) {
-                console.log('[SCALE WATCH] Button actual font size:', getComputedStyle(btn).fontSize);
-            }
-        }
-    }, 500); // Проверяем каждые 500ms
-}
-
-// Запускаем через 1 секунду после загрузки
-setTimeout(watchUIScale, 1000);
-
-
-// Добавьте после функции applyUiScale()
-function debugCSSVariables() {
-    console.log('[CSS DEBUG] ========== CSS VARIABLES DEBUG ==========');
-    
-    // Получаем все CSS переменные
-    var rootStyle = getComputedStyle(document.documentElement);
-    var uiScale = rootStyle.getPropertyValue('--uiScale').trim();
-    var baseFontPx = rootStyle.getPropertyValue('--baseFontPx').trim();
-    var uiBottomOffset = rootStyle.getPropertyValue('--uiBottomOffset').trim();
-    var topSpacing = rootStyle.getPropertyValue('--topSpacing').trim();
-    var bottomSpacing = rootStyle.getPropertyValue('--bottomSpacing').trim();
-    
-    console.log('[CSS DEBUG] --uiScale:', uiScale);
-    console.log('[CSS DEBUG] --baseFontPx:', baseFontPx);
-    console.log('[CSS DEBUG] --uiBottomOffset:', uiBottomOffset);
-    console.log('[CSS DEBUG] --topSpacing:', topSpacing);
-    console.log('[CSS DEBUG] --bottomSpacing:', bottomSpacing);
-    
-    // Проверяем конкретные элементы
-    var dialog = document.getElementById('dialog');
-    if (dialog) {
-        var dialogStyle = getComputedStyle(dialog);
-        console.log('[CSS DEBUG] DIALOG - padding:', dialogStyle.padding);
-        console.log('[CSS DEBUG] DIALOG - padding-top:', dialogStyle.paddingTop);
-        console.log('[CSS DEBUG] DIALOG - padding-right:', dialogStyle.paddingRight);
-        console.log('[CSS DEBUG] DIALOG - padding-bottom:', dialogStyle.paddingBottom);
-        console.log('[CSS DEBUG] DIALOG - padding-left:', dialogStyle.paddingLeft);
-        console.log('[CSS DEBUG] DIALOG - font-size:', dialogStyle.fontSize);
-        console.log('[CSS DEBUG] DIALOG - border-radius:', dialogStyle.borderRadius);
-        console.log('[CSS DEBUG] DIALOG - bottom:', dialogStyle.bottom);
-        
-        // Проверяем классы
-        console.log('[CSS DEBUG] DIALOG classes:', dialog.className);
-    }
-    
-    var nameBox = document.getElementById('nameBox');
-    if (nameBox) {
-        var nameStyle = getComputedStyle(nameBox);
-        console.log('[CSS DEBUG] NAMEBOX - padding:', nameStyle.padding);
-        console.log('[CSS DEBUG] NAMEBOX - font-size:', nameStyle.fontSize);
-        console.log('[CSS DEBUG] NAMEBOX - border-radius:', nameStyle.borderRadius);
-    }
-    
-    var choiceBtn = document.querySelector('.choiceBtn');
-    if (choiceBtn) {
-        var btnStyle = getComputedStyle(choiceBtn);
-        console.log('[CSS DEBUG] CHOICE BTN - padding:', btnStyle.padding);
-        console.log('[CSS DEBUG] CHOICE BTN - font-size:', btnStyle.fontSize);
-        console.log('[CSS DEBUG] CHOICE BTN - border-radius:', btnStyle.borderRadius);
-    }
-    
-    var topbar = document.querySelector('.topbar');
-    if (topbar) {
-        var topbarStyle = getComputedStyle(topbar);
-        console.log('[CSS DEBUG] TOPBAR - padding:', topbarStyle.padding);
-        console.log('[CSS DEBUG] TOPBAR - gap:', topbarStyle.gap);
-    }
-    
-    console.log('[CSS DEBUG] ========== END CSS DEBUG ==========');
-}
-
-// Вызовите после applyUiScale() и после загрузки
-setTimeout(debugCSSVariables, 500);
-setTimeout(debugCSSVariables, 2000); // Повторно через 2 секунды
-
-// Отслеживаем изменения стилей dialog
-function watchDialogStyles() {
-    var dialog = document.getElementById('dialog');
-    if (!dialog) return;
-    
-    var lastPadding = '';
-    setInterval(function() {
-        var currentPadding = getComputedStyle(dialog).padding;
-        if (lastPadding !== currentPadding) {
-            console.log('[STYLE WATCH] Dialog padding changed from', lastPadding, 'to', currentPadding);
-            console.log('[STYLE WATCH] --uiScale current:', getComputedStyle(document.documentElement).getPropertyValue('--uiScale').trim());
-            lastPadding = currentPadding;
-        }
-    }, 1000);
-}
-
-setTimeout(watchDialogStyles, 1000);
 
 })();
