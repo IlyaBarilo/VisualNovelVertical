@@ -582,6 +582,7 @@
         console.log('[Engine setCharacter] No src, hiding character');
         elChar.classList.add("hidden");
         elChar.src = "";
+        setTimeout(adjustCharacterScale, 50); // небольшая задержка для загрузки изображения
         return;
     }
     
@@ -1081,6 +1082,70 @@
     document.documentElement.style.setProperty("--uiScale", finalScale);
   }
 
+    // =========================================================
+  // ДИНАМИЧЕСКОЕ МАСШТАБИРОВАНИЕ ПЕРСОНАЖЕЙ
+  // =========================================================
+
+  function adjustCharacterScale() {
+    var charElement = document.getElementById('charLayer');
+    if (!charElement || charElement.classList.contains('hidden')) return;
+    
+    var windowWidth = window.innerWidth;
+    var windowHeight = window.innerHeight;
+    var aspectRatio = windowWidth / windowHeight;
+    
+    // Получаем реальные размеры изображения после загрузки
+    if (charElement.complete && charElement.naturalWidth > 0) {
+      var imgWidth = charElement.naturalWidth;
+      var imgHeight = charElement.naturalHeight;
+      var imgAspect = imgWidth / imgHeight;
+      
+      // Если изображение слишком широкое для вертикального экрана
+      if (imgAspect > 0.8 && aspectRatio < 0.6) {
+        // Для широких персонажей на узких экранах - ограничиваем по ширине
+        charElement.style.height = 'auto';
+        charElement.style.width = 'min(90vw, 800px)';
+        charElement.style.maxHeight = '85vh';
+      } else {
+        // Стандартное поведение
+        charElement.style.height = '85vh';
+        charElement.style.width = 'auto';
+      }
+    }
+    
+    // Корректировка позиции для очень высоких экранов
+    if (windowHeight > 2000) {
+      var bottomOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bottomSpacing')) || 200;
+      charElement.style.bottom = bottomOffset + 'px';
+    }
+  }
+
+  // Вызываем при загрузке изображения персонажа
+  function setupCharacterLoadHandler() {
+    var charElement = document.getElementById('charLayer');
+    if (charElement) {
+      charElement.addEventListener('load', function() {
+        adjustCharacterScale();
+      });
+    }
+  }
+
+  // Вызываем при изменении размера окна
+  window.addEventListener('resize', function() {
+    adjustCharacterScale();
+  });
+
+  // Вызываем после загрузки страницы
+  document.addEventListener('DOMContentLoaded', function() {
+    setupCharacterLoadHandler();
+    adjustCharacterScale();
+  });
+
+  // Также вызываем после смены персонажа в движке
+  // В функции setCharacter, после установки src, добавьте вызов:
+  // setTimeout(adjustCharacterScale, 50);
+
+  
   // =========================================================
   //                   UTILS
   // =========================================================
