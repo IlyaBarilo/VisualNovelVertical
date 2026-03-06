@@ -1155,32 +1155,22 @@
       text += "Меню выбора: " + stats.choiceCount + "\n\n";
 
       text += "=== ПРОВЕРКА ФАЙЛОВ ===\n\n";
-      
-      // Информация о звуковых файлах
-      var audioFiles = fileStats.files.filter(f => f.category === 'audio');
-      if (audioFiles.length > 0) {
-        text += "=== ЗВУКОВЫЕ ФАЙЛЫ ===\n\n";
-
-        // Отсутствующие файлы
-        if (fileStats.missing.length > 0) {
-          text += "❌ ОТСУТСТВУЮТ ФАЙЛЫ:\n";
-          fileStats.missing.forEach(item => {
-            text += `  ${item.path}\n`;
-            if (item.refs) {
-              item.refs.forEach(ref => text += `    используется в: ${ref}\n`);
-            }
-          });
-          text += "\n";
-        } else {
-          text += "✅ Все файлы найдены\n\n";
-        }
-
+        
+      // Отсутствующие файлы - проверяем ВСЕГДА, независимо от наличия звука
+      if (fileStats.missing.length > 0) {
+        text += "❌ ОТСУТСТВУЮТ ФАЙЛЫ:\n";
+        fileStats.missing.forEach(item => {
+          text += `  ${item.path}\n`;
+          if (item.refs) {
+            item.refs.forEach(ref => text += `    используется в: ${ref}\n`);
+          }
+        });
+        text += "\n";
       } else {
-        text += "✅ Звуковые файлы не используются\n\n";
+        text += "✅ Все файлы найдены\n\n";
       }
-
       
-      // Ошибки размеров
+      // Ошибки размеров изображений
       if (fileStats.sizeErrors.length > 0) {
         text += "❌ ПРОБЛЕМЫ С РАЗМЕРАМИ ИЗОБРАЖЕНИЙ:\n\n";
         
@@ -1199,9 +1189,10 @@
           text += "\n";
         });
       } else {
-          text += "✅ Все изображения соответствуют требованиям по размеру\n\n";
+        text += "✅ Все изображения соответствуют требованиям по размеру\n\n";
       }
       
+
       text += "=== СТАТИСТИКА ФАЙЛОВ ===\n\n";
       text += "Всего файлов: " + fileStats.files.length + "\n";
       
