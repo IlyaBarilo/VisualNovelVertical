@@ -140,25 +140,25 @@ body {
   background: rgba(0,0,0,0.55);
   color: #fff;
   border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   padding: 0.4rem 0.6rem;
-  font-size: 0.85rem; /* rem - фиксировано относительно базового */
+  font-size: 0.8rem; /* rem - фиксировано относительно базового */
 }
 
 /* Слайдер */
 .slider {
-  width: calc(80px * var(--uiScale));
-  height: calc(20px * var(--uiScale));
+  width: 5rem;                   /* ИСПРАВЛЕНО: было calc(80px * var(--uiScale)) */
+  height: 1.25rem;               /* ИСПРАВЛЕНО: было calc(20px * var(--uiScale)) */
 }
 
 /* Диалог */
 .dialog {
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 0.6rem;
+  right: 0.6rem;
   bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
-  padding: calc(8px * var(--uiScale)); /* масштабируем отступы */
-  border-radius: calc(12px * var(--uiScale)); /* масштабируем скругление */
+  padding: 0.5rem;               /* ИСПРАВЛЕНО: было calc(8px * var(--uiScale)) */ /* масштабируем отступы */
+  border-radius: 0.75rem;        /* ИСПРАВЛЕНО: было calc(12px * var(--uiScale)) */ /* масштабируем скругление */
   background: rgba(0,0,0,0.60);
   border: 1px solid rgba(255,255,255,0.14);
   backdrop-filter: blur(4px);
@@ -166,17 +166,16 @@ body {
   font-size: 1rem;
   z-index: 10;
   transition: padding-bottom 0.2s ease; /* плавное изменение */
-  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
 }
 
 /* Диалог без подсказки */
 .dialog.no-hint {
-  padding-bottom: 0.7rem;
+   padding-bottom: 0.4rem;
 }
 
 /* Диалог с подсказкой - добавляем место для hint */
 .dialog.has-hint {
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
 }
 
 /* Когда показан выбор — диалог скрываем целиком */
@@ -187,20 +186,20 @@ body {
 /* Имя персонажа - ОСТАВЛЯЕМ rem, так как должно быть фиксировано относительно базового */
 .name {
   display: inline-block;
-  padding: 0.3rem 0.6rem;
-  border-radius: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
   background: rgba(255,255,255,0.10);
   border: 1px solid rgba(255,255,255,0.12);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.3rem;
   font-weight: 700;
-  font-size: 0.9rem; /* rem - фиксировано относительно базового */
+  font-size: 0.8rem; /* rem - фиксировано относительно базового */
   line-height: 1.2;
 }
 
 .text {
   font-size: 1rem; /* rem - базовый размер */
   line-height: 1.4;
-  min-height: 2.4em; /* em - относительно текущего шрифта */
+  min-height: 2.4rem; /* em - относительно текущего шрифта */
   white-space: pre-wrap;
 }
 
@@ -220,16 +219,15 @@ body {
 /* Выбор */
 .choices {
   position: absolute;
-  left: 10px;
-  right: 10px;
-
-  top: 10px;                       /* контейнер растягиваем по высоте */
-  bottom: var(--uiBottomOffset);   /* низ = тот же отступ, что у диалога */
+  left: 0.6rem;                  /* ИСПРАВЛЕНО: было 10px */
+  right: 0.6rem;                 /* ИСПРАВЛЕНО: было 10px */
+  top: 0.6rem;                   /* ИСПРАВЛЕНО: было 10px */
+  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
 
   display: flex;
   flex-direction: column;
   justify-content: flex-end;       /* КЛЮЧ: прижимаем кнопки к низу */
-  gap: 10px;
+  gap: 0.5rem;                   /* ИСПРАВЛЕНО: было 10px */
 
   z-index: 11;
 }
@@ -237,8 +235,8 @@ body {
 .choiceBtn {
   width: 100%;
   text-align: left;
-  padding: 0.7rem 0.9rem;
-  border-radius: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.6rem;
   background: rgba(0,0,0,0.55);
   border: 1px solid rgba(255,255,255,0.18);
   color: #fff;
@@ -375,15 +373,35 @@ body {
 /* Медиа-запрос для мобильных устройств */
 @media (max-width: 600px) {
   .topbar {
-    padding: calc(6px * var(--uiScale));
+    padding: 0.3rem 0.4rem;
   }
 
   .slider {
-    width: calc(60px * var(--uiScale));
+    width: 4rem;
+    height: 1rem;
   }
 
   .btn {
-    padding: calc(6px * var(--uiScale)) calc(8px * var(--uiScale));
+    padding: 0.3rem 0.4rem;
+    border-radius: 0.4rem;
+    font-size: 0.7rem;
+  }
+
+  .dialog {
+    left: 0.3rem;                /* ИСПРАВЛЕНО */
+    right: 0.3rem;               /* ИСПРАВЛЕНО */
+    padding: 0.4rem;             /* ИСПРАВЛЕНО */
+  }
+  
+  .choices {
+    left: 0.3rem;                /* ИСПРАВЛЕНО */
+    right: 0.3rem;               /* ИСПРАВЛЕНО */
+    gap: 0.3rem;                 /* ИСПРАВЛЕНО */
+  }
+  
+  .choiceBtn {
+    padding: 0.4rem 0.5rem;      /* ИСПРАВЛЕНО */
+    font-size: 0.8rem;           /* ИСПРАВЛЕНО */
   }
 }
 
@@ -437,12 +455,12 @@ body {
   }
 }
 
-/* Диалог с именем персонажа - стандартный отступ */
+/* Диалог с именем персонажа */
 .dialog.has-name {
-  padding-top: calc(8px * var(--uiScale)); /* стандартный отступ */
+  padding-top: 0.5rem;           /* ИСПРАВЛЕНО: было calc(8px * var(--uiScale)) */
 }
 
 /* Диалог без имени персонажа - увеличенный отступ */
 .dialog.no-name {
-  padding-top: 32px; /* увеличьте это значение для нужного отступа */
+  padding-top: 2rem;             /* ИСПРАВЛЕНО: было 32px */
 }

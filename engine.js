@@ -1090,6 +1090,14 @@ function applyUiScale() {
     document.documentElement.style.setProperty("--uiScale", finalScale);
     console.log('[SCALE] Set --uiScale CSS variable to:', finalScale);
     
+    // ВАЖНО: обновляем базовый размер шрифта
+    var baseFontPx = 16; // должно совпадать с --baseFontPx в CSS
+    var baseFontSize = baseFontPx * finalScale;
+    document.documentElement.style.setProperty("--baseFontSize", baseFontSize + 'px');
+    
+    console.log('[SCALE] Set --uiScale:', finalScale);
+    console.log('[SCALE] Set --baseFontSize:', baseFontSize + 'px');
+
     // Проверяем, какое значение реально в CSS
     var computedScale = getComputedStyle(document.documentElement).getPropertyValue('--uiScale').trim();
     console.log('[SCALE] Computed --uiScale from CSS:', computedScale);
