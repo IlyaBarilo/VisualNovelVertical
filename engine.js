@@ -521,17 +521,15 @@ let __activeCharSeq = 0;
 
         // Новый формат: { type: "char", charId: "anna", emotion: "neutral" }
         if (action.charId) {
-
             console.log('[Engine CHAR] New format - charId:', action.charId, 'emotion:', action.emotion);
-        
-            // Проверяем структуру assets
+
             console.log('[Engine CHAR] STORY.assets:', STORY.assets);
             console.log('[Engine CHAR] STORY.assets.characters:', STORY.assets?.characters);
 
             if (STORY.assets?.characters) {
                 const char = STORY.assets.characters[action.charId];
                 console.log('[Engine CHAR] Character data for', action.charId, ':', char);
-                
+
                 if (char?.images) {
                     console.log('[Engine CHAR] Available emotions:', Object.keys(char.images));
                     console.log('[Engine CHAR] Requested emotion:', action.emotion);
@@ -540,78 +538,113 @@ let __activeCharSeq = 0;
             }
 
             const src = resolveAsset(null, action.charId, action.emotion);
-            if (!src) {
-              setCharacter(null, action.pos, action.charId);
-              return false;
-            }
             console.log('[Engine CHAR] Resolved src:', src);
+
             console.log('[SCRIPT FLOW] char action -> setCharacter', {
-              actionIndex: state.actionIndex - 1,
-              action: action,
-              resolvedSrc: src,
-              pos: action.pos,
-              charId: action.charId
+                actionIndex: state.actionIndex - 1,
+                action: action,
+                resolvedSrc: src,
+                pos: action.pos,
+                charId: action.charId
             });
+
+            // Новый формат с пустым src = просто скрыть персонажа
+            if (!src) {
+                console.log('[SCRIPT FLOW] char action(new) -> hide immediately', {
+                    sceneId: state.sceneId,
+                    actionIndex: state.actionIndex - 1,
+                    action: action
+                });
+
+                setCharacter(null, action.pos, action.charId);
+                return false;
+            }
+
+            // Новый формат с картинкой = async
             setCharacter(src, action.pos, action.charId, function() {
+                console.log('[FLOW] char(new):done callback start', {
+                    sceneId: state.sceneId,
+                    actionIndex: state.actionIndex,
+                    waitingNextBefore: state.waitingNext,
+                    nextLockedBefore: state.nextLocked
+                });
+
                 state.nextLocked = false;
                 state.waitingNext = false;
+
+                console.log('[FLOW] char(new):done callback before runCurrent', {
+                    sceneId: state.sceneId,
+                    actionIndex: state.actionIndex,
+                    waitingNextAfterReset: state.waitingNext,
+                    nextLockedAfterReset: state.nextLocked
+                });
+
                 runCurrent();
             });
-        } else {
-            console.log('[Engine CHAR] Old format - src:', action.src);
 
-            const resolved = resolveAsset(action.src);
-            console.log('[Engine CHAR] Resolved src (old):', resolved);
-
-            console.log('[SCRIPT FLOW] char action(old) -> setCharacter', {
-              actionIndex: state.actionIndex - 1,
-              action: action,
-              resolvedSrc: resolved,
-              pos: action.pos
-            });
-
-            // Старый формат с null = просто скрыть персонажа, без async-ожидания
-            if (!resolved) {
-              console.log('[SCRIPT FLOW] char action(old) -> hide immediately', {
+            console.log('[SCRIPT FLOW] char action(new) paused until image load', {
                 sceneId: state.sceneId,
                 actionIndex: state.actionIndex - 1,
                 action: action
-              });
-
-              setCharacter(null, action.pos, null);
-              return false;
-            }
-
-            // Если картинка есть — это уже асинхронная загрузка
-            setCharacter(resolved, action.pos, null, function() {
-              console.log('[FLOW] char(old):done callback start', {
-                sceneId: state.sceneId,
-                actionIndex: state.actionIndex,
-                waitingNextBefore: state.waitingNext,
-                nextLockedBefore: state.nextLocked
-              });
-
-              state.nextLocked = false;
-              state.waitingNext = false;
-
-              console.log('[FLOW] char(old):done callback before runCurrent', {
-                sceneId: state.sceneId,
-                actionIndex: state.actionIndex,
-                waitingNextAfterReset: state.waitingNext,
-                nextLockedAfterReset: state.nextLocked
-              });
-
-              runCurrent();
-            });
-
-            console.log('[SCRIPT FLOW] char action(old) paused until image load', {
-              sceneId: state.sceneId,
-              actionIndex: state.actionIndex - 1,
-              action: action
             });
 
             return "async";
         }
+
+        // Старый формат
+        console.log('[Engine CHAR] Old format - src:', action.src);
+
+        const resolved = resolveAsset(action.src);
+        console.log('[Engine CHAR] Resolved src (old):', resolved);
+
+        console.log('[SCRIPT FLOW] char action(old) -> setCharacter', {
+            actionIndex: state.actionIndex - 1,
+            action: action,
+            resolvedSrc: resolved,
+            pos: action.pos
+        });
+
+        // Старый формат с null = просто скрыть персонажа
+        if (!resolved) {
+            console.log('[SCRIPT FLOW] char action(old) -> hide immediately', {
+                sceneId: state.sceneId,
+                actionIndex: state.actionIndex - 1,
+                action: action
+            });
+
+            setCharacter(null, action.pos, null);
+            return false;
+        }
+
+        // Старый формат с картинкой = async
+        setCharacter(resolved, action.pos, null, function() {
+            console.log('[FLOW] char(old):done callback start', {
+                sceneId: state.sceneId,
+                actionIndex: state.actionIndex,
+                waitingNextBefore: state.waitingNext,
+                nextLockedBefore: state.nextLocked
+            });
+
+            state.nextLocked = false;
+            state.waitingNext = false;
+
+            console.log('[FLOW] char(old):done callback before runCurrent', {
+                sceneId: state.sceneId,
+                actionIndex: state.actionIndex,
+                waitingNextAfterReset: state.waitingNext,
+                nextLockedAfterReset: state.nextLocked
+            });
+
+            runCurrent();
+        });
+
+        console.log('[SCRIPT FLOW] char action(old) paused until image load', {
+            sceneId: state.sceneId,
+            actionIndex: state.actionIndex - 1,
+            action: action
+        });
+
+        return "async";
 
       case "say":
         // Новый формат: { type: "say", charVar: "anna", text: "..." }
