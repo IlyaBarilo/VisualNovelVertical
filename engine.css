@@ -142,7 +142,7 @@ body {
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: 0.6rem;
   padding: 0.4rem 0.6rem;
-  font-size: 0.85em;
+  font-size: 0.85rem; /* rem - фиксировано относительно базового */
 }
 
 /* Слайдер */
@@ -163,7 +163,7 @@ body {
   border: 1px solid rgba(255,255,255,0.14);
   backdrop-filter: blur(4px);
   outline: none;
-  font-size: 1em; /* наследуется от .app */
+  font-size: 1rem;
   z-index: 10;
   transition: padding-bottom 0.2s ease; /* плавное изменение */
   bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
@@ -184,27 +184,29 @@ body {
   display: none !important;
 }
 
+/* Имя персонажа - ОСТАВЛЯЕМ rem, так как должно быть фиксировано относительно базового */
 .name {
   display: inline-block;
   padding: 0.3rem 0.6rem;
-  border-radius: 0.7rem;
+  border-radius: 0.5rem;
   background: rgba(255,255,255,0.10);
   border: 1px solid rgba(255,255,255,0.12);
   margin-bottom: 0.4rem;
   font-weight: 700;
-  font-size: 0.9em; /* 1em = базовый размер из .app */
+  font-size: 0.9rem; /* rem - фиксировано относительно базового */
+  line-height: 1.2;
 }
 
 .text {
-  font-size: 1em; /* 1em = базовый размер из .app */
+  font-size: 1rem; /* rem - базовый размер */
   line-height: 1.4;
-  min-height: 2.4em;
+  min-height: 2.4em; /* em - относительно текущего шрифта */
   white-space: pre-wrap;
 }
 
 .hint {
   margin-top: 0.5rem;
-  font-size: 0.7em;
+  font-size: 0.7em; /* ВОЗВРАЩАЕМ em - масштабируется относительно диалога */
   opacity: 0.65;
   display: none;
   transition: opacity 0.2s ease;
@@ -240,7 +242,7 @@ body {
   background: rgba(0,0,0,0.55);
   border: 1px solid rgba(255,255,255,0.18);
   color: #fff;
-  font-size: 0.95em;
+  font-size: 0.95em; /* ВОЗВРАЩАЕМ em */
 }
 
 /* Модалка мини-игры */
