@@ -1136,7 +1136,7 @@ function applyUiScale() {
     var autoScale = window.innerHeight / UI_REFERENCE_HEIGHT;
     autoScale = clamp(autoScale, 0.5, 10);
 
-    var finalScale = Math.max(0.75, UI_FONT_SCALE * autoScale);
+    var finalScale = Math.max(0.25, UI_FONT_SCALE * autoScale);
 
     document.documentElement.style.setProperty("--uiScale", finalScale);
 
@@ -1145,7 +1145,16 @@ function applyUiScale() {
     var baseFontSize = baseFontPx * finalScale;
     document.documentElement.style.setProperty("--baseFontSize", baseFontSize + 'px');
 
-    console.log('[SCALE] uiScale:', finalScale, 'baseFontSize:', baseFontSize + 'px');
+    console.log('[SCALE DEBUG]', {
+      innerWidth: window.innerWidth,
+      innerHeight: window.innerHeight,
+      referenceHeight: UI_REFERENCE_HEIGHT,
+      autoScale: autoScale,
+      uiFontScale: UI_FONT_SCALE,
+      finalScale: finalScale,
+      baseFontSizePx: baseFontSize,
+      cssBaseFontSize: getComputedStyle(document.documentElement).fontSize
+    });
 }
 
 

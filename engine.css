@@ -1,6 +1,7 @@
 /* Базовый сброс */
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; padding: 0; }
+html { font-size: var(--baseFontSize); }
 body { background: #000; color: #fff; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
 
 body {
@@ -156,7 +157,6 @@ body {
 
   overflow: hidden;
   user-select: none;
-  font-size: var(--baseFontSize); /* Устанавливаем базовый размер для всего интерфейса */
 }
 
 /* Фон: растягиваем на весь экран, центрируем, crop по краям */
