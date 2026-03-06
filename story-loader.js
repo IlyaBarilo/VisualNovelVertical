@@ -90,6 +90,7 @@
           parseAssetLine(line, 'backgrounds', story);
           break;
         case 'char':
+          console.log('[Loader CHAR] Processing line:', line);
           parseAssetLine(line, 'characters', story);
           break;
         case 'audio':
@@ -129,6 +130,10 @@
     
     // Передаём в движок
     window.STORY = story;
+    
+    console.log('[Loader] ФИНАЛЬНЫЙ STORY.assets:', story.assets);
+    console.log('[Loader] ФИНАЛЬНЫЙ backgrounds:', story.assets.backgrounds);
+    console.log('[Loader] ФИНАЛЬНЫЙ audio:', story.assets.audio);
     
     // Уведомляем движок
     if (window.__onStoryLoaded) {
@@ -174,7 +179,7 @@
     }
   }
 
-   // Парсинг ресурсов (bg, char, audio)
+  // Парсинг ресурсов (bg, char, audio)
   function parseAssetLine(line, category, story) {
     console.log('[Loader] parseAssetLine:', line, 'category:', category);
     
@@ -207,43 +212,49 @@
       }
       
       if (category === 'characters') {
-        console.log('[Loader] processing character');
+        console.log('[Loader CHAR] processing character line:', line);
         // Формат: "имя тип = значение" (anna image neutral, anna name, anna color)
         const keyParts = key.split(' ');
-        console.log('[Loader] keyParts:', keyParts);
+        console.log('[Loader CHAR] keyParts:', keyParts);
         
         if (keyParts.length >= 2) {
-          const charId = keyParts[0]; // anna, igor
-          const propType = keyParts[1]; // image, name, color
-          
-          console.log('[Loader] charId:', charId, 'propType:', propType);
-          
-          if (!story.assets.characters[charId]) {
-            story.assets.characters[charId] = {};
-          }
-          
-          if (propType === 'image') {
-            // Для image нужна эмоция (третий параметр)
-            const emotion = keyParts[2] || 'neutral';
-            if (!story.assets.characters[charId].images) {
-              story.assets.characters[charId].images = {};
+            const charId = keyParts[0]; // anna, igor
+            const propType = keyParts[1]; // image, name, color
+            
+            console.log('[Loader CHAR] charId:', charId, 'propType:', propType);
+            
+            if (!story.assets.characters[charId]) {
+                story.assets.characters[charId] = {};
+                console.log('[Loader CHAR] Created new character object for:', charId);
             }
-            story.assets.characters[charId].images[emotion] = value;
-            console.log(`[Loader] Добавлен image для ${charId} (${emotion}): ${value}`);
-          } else if (propType === 'name') {
-            story.assets.characters[charId].name = value;
-            console.log(`[Loader] Добавлено name для ${charId}: ${value}`);
-          } else if (propType === 'color') {
-            story.assets.characters[charId].color = value;
-            console.log(`[Loader] Добавлен color для ${charId}: ${value}`);
-          }
+            
+            if (propType === 'image') {
+                // Для image нужна эмоция (третий параметр)
+                const emotion = keyParts[2] || 'neutral';
+                if (!story.assets.characters[charId].images) {
+                    story.assets.characters[charId].images = {};
+                }
+                story.assets.characters[charId].images[emotion] = value;
+                console.log(`[Loader CHAR] Added image for ${charId} (${emotion}): ${value}`);
+                console.log('[Loader CHAR] Current character data:', story.assets.characters[charId]);
+            } else if (propType === 'name') {
+                story.assets.characters[charId].name = value;
+                console.log(`[Loader CHAR] Added name for ${charId}: ${value}`);
+            } else if (propType === 'color') {
+                story.assets.characters[charId].color = value;
+                console.log(`[Loader CHAR] Added color for ${charId}: ${value}`);
+            }
         } else {
-          console.warn(`[Loader] Неправильный формат строки персонажа: ${key}`);
+            console.warn(`[Loader CHAR] Invalid character format: ${key}`);
         }
       } else {
         // Для bg и audio оставляем как есть
         story.assets[category][key] = value;
         console.log(`[Loader] Добавлен ${category}: ${key} = ${value}`);
+        
+        // ========== ДОБАВЬТЕ ЭТОТ КОД ==========
+        console.log(`[Loader] Текущее состояние ${category}:`, story.assets[category]);
+        // =======================================
       }
     }
   }

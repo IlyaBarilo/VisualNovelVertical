@@ -49,8 +49,6 @@
     if (e.target === elStatsPanel) hideStatsPanel();
   });
 
-
-
   // Клик по фону/персонажу/сцене тоже листает дальше
   var elStage = document.getElementById("stage");
 
@@ -115,6 +113,19 @@
   var STORY = window.STORY;
   console.log('[Engine] Сценарий найден сразу:', STORY.meta.title);
 
+
+  // ========== ЗАМЕНИТЕ НА ЭТОТ КОД ==========
+  console.log('[Engine] STORY.assets:', STORY.assets);
+  if (STORY.assets) {
+    console.log('[Engine] STORY.assets.backgrounds:', STORY.assets.backgrounds);
+    console.log('[Engine] STORY.assets.characters:', STORY.assets.characters);
+    console.log('[Engine] STORY.assets.audio:', STORY.assets.audio);
+  } else {
+    console.log('[Engine] STORY.assets is undefined!');
+  }
+  // ===========================================
+
+  
   // Применяем настройки отступов
   applySpacingSettings();
 
@@ -377,13 +388,37 @@
         return false;
 
       case "char":
+        console.log('[Engine CHAR] Processing char action:', action);
+
         // Новый формат: { type: "char", charId: "anna", emotion: "neutral" }
         if (action.charId) {
-          const src = resolveAsset(null, action.charId, action.emotion);
-          setCharacter(src, action.pos, action.charId);
+
+            console.log('[Engine CHAR] New format - charId:', action.charId, 'emotion:', action.emotion);
+        
+            // Проверяем структуру assets
+            console.log('[Engine CHAR] STORY.assets:', STORY.assets);
+            console.log('[Engine CHAR] STORY.assets.characters:', STORY.assets?.characters);
+
+            if (STORY.assets?.characters) {
+                const char = STORY.assets.characters[action.charId];
+                console.log('[Engine CHAR] Character data for', action.charId, ':', char);
+                
+                if (char?.images) {
+                    console.log('[Engine CHAR] Available emotions:', Object.keys(char.images));
+                    console.log('[Engine CHAR] Requested emotion:', action.emotion);
+                    console.log('[Engine CHAR] Image path:', char.images[action.emotion]);
+                }
+            }
+
+            const src = resolveAsset(null, action.charId, action.emotion);
+            console.log('[Engine CHAR] Resolved src:', src);
+            setCharacter(src, action.pos, action.charId);
         } else {
-          // Старый формат для обратной совместимости
-          setCharacter(resolveAsset(action.src), action.pos);
+            // Старый формат для обратной совместимости
+            console.log('[Engine CHAR] Old format - src:', action.src);
+            const src = resolveAsset(action.src);
+            console.log('[Engine CHAR] Resolved src (old):', src);
+            setCharacter(resolveAsset(action.src), action.pos);
         }
         return false;
 
@@ -540,29 +575,43 @@
   }
 
   function setCharacter(src, pos, charId) {
+    console.log('[Engine setCharacter] Called with:', { src, pos, charId });
+    console.log('[Engine setCharacter] elChar element:', elChar);
+    
     if (!src) {
-      elChar.classList.add("hidden");
-      elChar.src = "";
-      return;
+        console.log('[Engine setCharacter] No src, hiding character');
+        elChar.classList.add("hidden");
+        elChar.src = "";
+        return;
     }
+    
+    console.log('[Engine setCharacter] Setting src:', src);
     elChar.src = src;
     elChar.classList.remove("hidden");
     
+    // Проверяем, загрузилось ли изображение
+    elChar.onload = function() {
+        console.log('[Engine setCharacter] Image loaded successfully:', src);
+    };
+    elChar.onerror = function() {
+        console.log('[Engine setCharacter] Image failed to load:', src);
+    };
+    
     // Сохраняем ID персонажа для возможного использования
     if (charId) {
-      elChar.dataset.charId = charId;
+        elChar.dataset.charId = charId;
     }
 
     // pos — опционально (например: "center", "left", "right")
     if (pos === "left") {
-      elChar.style.left = "35%";
-      elChar.style.transform = "translateX(-50%)";
+        elChar.style.left = "35%";
+        elChar.style.transform = "translateX(-50%)";
     } else if (pos === "right") {
-      elChar.style.left = "65%";
-      elChar.style.transform = "translateX(-50%)";
+        elChar.style.left = "65%";
+        elChar.style.transform = "translateX(-50%)";
     } else {
-      elChar.style.left = "50%";
-      elChar.style.transform = "translateX(-50%)";
+        elChar.style.left = "50%";
+        elChar.style.transform = "translateX(-50%)";
     }
   }
 
@@ -922,44 +971,93 @@
   // =========================================================
 
   function resolveAsset(ref, charId, emotion) {
-    // ref может быть:
-    // - null (скрыть персонажа)
-    // - прямой путь "assets/..."
-    // - алиас "@bg.xxx", "@ch.xxx", "@audio.xxx"
+    console.log('[Engine resolveAsset] Called with:', { ref, charId, emotion });
     
-    if (ref === null) return null;
-    if (!ref) return "";
-    
-    // Если передан charId и emotion, ищем в структуре персонажа
+    // СНАЧАЛА проверяем персонажей, если есть charId и emotion
     if (charId && emotion && STORY.assets && STORY.assets.characters) {
-      const char = STORY.assets.characters[charId];
-      if (char && char.images && char.images[emotion]) {
-        return char.images[emotion];
-      }
+        console.log('[Engine resolveAsset] Looking for character:', charId, 'emotion:', emotion);
+        
+        const char = STORY.assets.characters[charId];
+        console.log('[Engine resolveAsset] Character object:', char);
+        
+        if (char && char.images) {
+            console.log('[Engine resolveAsset] Available emotions:', Object.keys(char.images));
+            const imagePath = char.images[emotion];
+            console.log('[Engine resolveAsset] Found image path:', imagePath);
+            
+            if (imagePath) {
+                console.log('[Engine resolveAsset] Returning character path:', imagePath);
+                return imagePath;
+            } else {
+                console.log('[Engine resolveAsset] Emotion not found:', emotion);
+            }
+        } else {
+            console.log('[Engine resolveAsset] Character or images not found');
+        }
     }
     
-    if (typeof ref !== "string") return "";
+    // ТОЛЬКО ПОТОМ проверяем ref === null
+    if (ref === null) {
+        console.log('[Engine resolveAsset] ref is null, returning null');
+        return null;
+    }
     
+    if (!ref) {
+        console.log('[Engine resolveAsset] ref is empty, returning empty string');
+        return "";
+    }
+    
+    if (typeof ref !== "string") {
+        console.log('[Engine resolveAsset] ref is not a string:', ref);
+        return "";
+    }
+    
+    // Если это прямой путь (не алиас)
     if (ref.indexOf("@") !== 0) {
-      return ref;
+        console.log('[Engine resolveAsset] ref is direct path:', ref);
+        return ref;
     }
     
-    // "@bg.name" -> STORY.assets.backgrounds[name]
+    // Обработка алиасов @bg.xxx, @audio.xxx
     var parts = ref.substring(1).split(".");
-    if (parts.length < 2) return "";
+    if (parts.length < 2) {
+        console.log('[Engine resolveAsset] Invalid alias format:', ref);
+        return "";
+    }
     
     var group = parts[0];
     var key = parts.slice(1).join(".");
     
-    if (!STORY.assets) return "";
+    console.log('[Engine resolveAsset] Alias - group:', group, 'key:', key);
     
-    if (group === "bg" && STORY.assets.backgrounds) {
-      return STORY.assets.backgrounds[key] || "";
-    }
-    if (group === "audio" && STORY.assets.audio) {
-      return STORY.assets.audio[key] || "";
+    if (!STORY.assets) {
+        console.log('[Engine resolveAsset] STORY.assets is missing');
+        return "";
     }
     
+    if (group === "bg") {
+        if (!STORY.assets.backgrounds) {
+            console.log('[Engine resolveAsset] STORY.assets.backgrounds is missing');
+            return "";
+        }
+        console.log('[Engine resolveAsset] Available backgrounds:', Object.keys(STORY.assets.backgrounds));
+        const result = STORY.assets.backgrounds[key];
+        console.log('[Engine resolveAsset] Found background:', result);
+        return result || "";
+    }
+    
+    if (group === "audio") {
+        if (!STORY.assets.audio) {
+            console.log('[Engine resolveAsset] STORY.assets.audio is missing');
+            return "";
+        }
+        console.log('[Engine resolveAsset] Available audio:', Object.keys(STORY.assets.audio));
+        const result = STORY.assets.audio[key];
+        console.log('[Engine resolveAsset] Found audio:', result);
+        return result || "";
+    }
+    
+    console.log('[Engine resolveAsset] No match found for group:', group);
     return "";
   }
 
