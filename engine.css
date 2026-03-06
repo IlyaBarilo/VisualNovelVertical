@@ -46,7 +46,7 @@ body {
      ========================================================= */
   --topbar-font-size: 1.16rem;
   --topbar-padding-y: 0.78rem;
-  --topbar-padding-x: 0.95rem;
+  --topbar-padding-x: 0.78rem;
   --topbar-gap: 0.80rem;
   --topbar-title-size: 0.85em;
   --topbar-control-gap: 0.75rem;
@@ -75,7 +75,7 @@ body {
   --dialog-padding: 0.92em;
   --dialog-radius: 1.05em;
   --dialog-text-line-height: 1.4;
-  --dialog-text-min-height: 3.0em;
+  --dialog-text-min-height: 1.8em;
   --dialog-hint-gap: 0.50em;
   --dialog-padding-bottom-no-hint: 0.80em;
   --dialog-padding-bottom-with-hint: 0.65em;
