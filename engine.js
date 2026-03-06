@@ -1284,6 +1284,12 @@ window.addEventListener("resize", adjustCharacterScale);
   function renderStats() {
 
     // Показываем индикатор загрузки
+    elStatsBody.value = "Сбор информации...";
+
+    // Сначала собираем информацию об окружении
+    var envInfo = collectEnvironmentInfo();
+
+    // Показываем индикатор загрузки
     elStatsBody.value = "Анализ файлов...";
     
     // Асинхронно проверяем файлы
@@ -1397,8 +1403,10 @@ window.addEventListener("resize", adjustCharacterScale);
       }
 
 
-      // После вычисления stats, errors, textInfo, reach, cycles
-      // (примерно строка 720-730)
+      // ========== ИНФОРМАЦИЯ ОБ ОКРУЖЕНИИ ==========
+      text += "=== ИНФОРМАЦИЯ ОБ УСТРОЙСТВЕ ===\n\n";
+      text += envInfo;
+      text += "\n";
 
       // Добавляем JSON сценария для отладки
       text += "\n\n=== JSON СЦЕНАРИЯ ===\n\n";
@@ -1423,8 +1431,105 @@ window.addEventListener("resize", adjustCharacterScale);
   }
 
 
- 
-  // Отброшен вариант: Проверка файлов через чтение первых 32 байт не возможно - ошибки статистики - указано, что файлов нет когда они есть
+// Новая функция для сбора информации об окружении
+function collectEnvironmentInfo() {
+  var info = "";
+    
+    // Размеры окна
+    info += "Размеры окна:\n";
+    info += "  window.innerWidth: " + window.innerWidth + "px\n";
+    info += "  window.innerHeight: " + window.innerHeight + "px\n";
+    info += "  window.outerWidth: " + window.outerWidth + "px\n";
+    info += "  window.outerHeight: " + window.outerHeight + "px\n";
+    info += "  screen.width: " + screen.width + "px\n";
+    info += "  screen.height: " + screen.height + "px\n";
+    info += "  screen.availWidth: " + screen.availWidth + "px\n";
+    info += "  screen.availHeight: " + screen.availHeight + "px\n";
+    info += "  devicePixelRatio: " + window.devicePixelRatio + "\n\n";
+    
+    // Соотношение сторон
+    var aspectRatio = (window.innerWidth / window.innerHeight).toFixed(2);
+    info += "Соотношение сторон: " + aspectRatio + " (" + aspectRatio + ":1)\n";
+    info += "Ориентация: " + (window.innerHeight > window.innerWidth ? "вертикальная" : "горизонтальная") + "\n\n";
+    
+    // CSS переменные
+    var rootStyle = getComputedStyle(document.documentElement);
+    var uiScale = rootStyle.getPropertyValue('--uiScale').trim();
+    var baseFontPx = rootStyle.getPropertyValue('--baseFontPx').trim();
+    var baseFontSize = rootStyle.getPropertyValue('--baseFontSize').trim();
+    var uiBottomOffset = rootStyle.getPropertyValue('--uiBottomOffset').trim();
+    var topSpacing = rootStyle.getPropertyValue('--topSpacing').trim();
+    var bottomSpacing = rootStyle.getPropertyValue('--bottomSpacing').trim();
+    
+    info += "CSS переменные:\n";
+    info += "  --uiScale: " + uiScale + "\n";
+    info += "  --baseFontPx: " + baseFontPx + "\n";
+    info += "  --baseFontSize: " + baseFontSize + "\n";
+    info += "  --uiBottomOffset: " + uiBottomOffset + "\n";
+    info += "  --topSpacing: " + topSpacing + "px\n";
+    info += "  --bottomSpacing: " + bottomSpacing + "px\n\n";
+    
+    // JS переменные масштабирования
+    info += "JS настройки масштаба:\n";
+    info += "  UI_FONT_SCALE: " + UI_FONT_SCALE + "\n";
+    info += "  UI_REFERENCE_HEIGHT: " + UI_REFERENCE_HEIGHT + "\n\n";
+    
+    // Размеры элементов интерфейса
+    var dialog = document.getElementById('dialog');
+    if (dialog) {
+        var dialogStyle = getComputedStyle(dialog);
+        info += "Диалог:\n";
+        info += "  width: " + dialogStyle.width + "\n";
+        info += "  height: " + dialogStyle.height + "\n";
+        info += "  padding: " + dialogStyle.padding + "\n";
+        info += "  font-size: " + dialogStyle.fontSize + "\n";
+        info += "  bottom: " + dialogStyle.bottom + "\n";
+        info += "  классы: " + dialog.className + "\n\n";
+    }
+    
+    var nameBox = document.getElementById('nameBox');
+    if (nameBox && !nameBox.classList.contains('hidden')) {
+        var nameStyle = getComputedStyle(nameBox);
+        info += "Имя персонажа:\n";
+        info += "  padding: " + nameStyle.padding + "\n";
+        info += "  font-size: " + nameStyle.fontSize + "\n";
+        info += "  margin-bottom: " + nameStyle.marginBottom + "\n\n";
+    }
+    
+    var choices = document.getElementById('choices');
+    if (choices && !choices.classList.contains('hidden')) {
+        var choicesStyle = getComputedStyle(choices);
+        var choiceBtn = document.querySelector('.choiceBtn');
+        info += "Меню выбора:\n";
+        info += "  контейнер bottom: " + choicesStyle.bottom + "\n";
+        info += "  gap: " + choicesStyle.gap + "\n";
+        
+        if (choiceBtn) {
+            var btnStyle = getComputedStyle(choiceBtn);
+            info += "  кнопка padding: " + btnStyle.padding + "\n";
+            info += "  кнопка font-size: " + btnStyle.fontSize + "\n";
+        }
+        info += "\n";
+    }
+    
+    var char = document.getElementById('charLayer');
+    if (char && !char.classList.contains('hidden')) {
+        info += "Персонаж:\n";
+        info += "  высота (JS): " + char.style.height + "\n";
+        info += "  фактическая высота: " + char.offsetHeight + "px\n";
+        info += "  max-height (CSS): " + getComputedStyle(char).maxHeight + "\n";
+        info += "  bottom: " + getComputedStyle(char).bottom + "\n\n";
+    }
+    
+    // Информация о браузере
+    info += "Браузер:\n";
+    info += "  userAgent: " + navigator.userAgent + "\n";
+    info += "  язык: " + navigator.language + "\n";
+    info += "  платформа: " + navigator.platform + "\n";
+    
+    return info;
+}
+
 
   // Проверка файлов через fetch с HEAD запросом (работает в file:// ограниченно)
   // Проверка файлов на соответствие требованиям
