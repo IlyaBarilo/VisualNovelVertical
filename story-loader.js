@@ -4,11 +4,35 @@
 (function() {
   "use strict";
 
+
+  // ========== СОБСТВЕННЫЙ ПРОФАЙЛЕР ЗАГРУЗЧИКА ==========
+  window.LOADER_STATS = {
+    startTime: Date.now(),
+    marks: {},
+    scenesCount: 0,
+    actionsCount: 0,
+    charactersCount: 0,
+    backgroundsCount: 0,
+    audioCount: 0
+  };
+  
+  function loaderMark(name) {
+    var time = Date.now() - window.LOADER_STATS.startTime;
+    window.LOADER_STATS.marks[name] = time;
+    console.log('[LOADER TIME]', name + ':', time + 'ms');
+    return time;
+  }
+
+  loaderMark('loader_start');
   console.log('[Loader] Запуск парсера...');
+
+
+
 
   // Проверяем наличие текста
   if (!window.STORY_TEXT) {
     console.error('[Loader] window.STORY_TEXT не найден!');
+    loaderMark('Ошибка: нет STORY_TEXT');
     createFallbackStory('Не найден story-content.js');
     return;
   }
@@ -22,7 +46,8 @@
 
   function parseStory(text) {
     console.log('[Loader] Начинаем парсинг, длина:', text.length);
-    
+    loaderMark('Начало парсинга');
+
     // Структура для результата
     const story = {
       meta: {
@@ -118,10 +143,58 @@
       story.meta.start = story.scenes[0].id;
     }
     
+    loaderMark('Парсинг завершен');
     console.log('[Loader] Парсинг завершён!');
     console.log('[Loader] Найдено сцен:', story.scenes.length);
     console.log('[Loader] Стартовая сцена:', story.meta.start);
-    
+
+
+
+
+
+
+
+    // Сохраняем статистику сценария ТОЛЬКО ПОСЛЕ ПОЛНОГО ПАРСИНГА
+    window.LOADER_STATS.scenesCount = story.scenes.length;
+
+    // Подсчет действий
+    var actionCount = 0;
+    if (story.scenes && story.scenes.length > 0) {
+      story.scenes.forEach(function(scene) {
+        if (scene.actions && scene.actions.length > 0) {
+          actionCount += scene.actions.length;
+        }
+      });
+    }
+    window.LOADER_STATS.actionsCount = actionCount;
+
+    // Подсчет ресурсов
+    if (story.assets) {
+      window.LOADER_STATS.backgroundsCount = story.assets.backgrounds ? Object.keys(story.assets.backgrounds).length : 0;
+      
+      // Подсчет персонажей (учитывая, что у каждого могут быть несколько эмоций)
+      var characterCount = 0;
+      if (story.assets.characters) {
+        characterCount = Object.keys(story.assets.characters).length;
+      }
+      window.LOADER_STATS.charactersCount = characterCount;
+      
+      window.LOADER_STATS.audioCount = story.assets.audio ? Object.keys(story.assets.audio).length : 0;
+    }
+
+    loaderMark('stats_collected');
+    console.log('[Loader] Статистика собрана:', {
+      scenes: window.LOADER_STATS.scenesCount,
+      actions: window.LOADER_STATS.actionsCount,
+      backgrounds: window.LOADER_STATS.backgroundsCount,
+      characters: window.LOADER_STATS.charactersCount,
+      audio: window.LOADER_STATS.audioCount
+    });
+
+
+
+
+
     // Сохраняем JSON для отладки
     try {
       localStorage.setItem('story_debug', JSON.stringify(story, null, 2));
@@ -131,16 +204,19 @@
     // Передаём в движок
     window.STORY = story;
     
+    loaderMark('STORY передан в window');
     console.log('[Loader] ФИНАЛЬНЫЙ STORY.assets:', story.assets);
     console.log('[Loader] ФИНАЛЬНЫЙ backgrounds:', story.assets.backgrounds);
     console.log('[Loader] ФИНАЛЬНЫЙ audio:', story.assets.audio);
-    
+
     // Уведомляем движок
     if (window.__onStoryLoaded) {
       console.log('[Loader] Уведомляем движок');
       window.__onStoryLoaded(story);
+      loaderMark('Движок уведомлен');
     } else {
       console.log('[Loader] Движок ещё не загружен, он подхватит window.STORY позже');
+      loaderMark('Ожидание движка');
     }
   }
 
