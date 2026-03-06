@@ -1082,42 +1082,44 @@
     document.documentElement.style.setProperty("--uiScale", finalScale);
   }
 
-    // =========================================================
+  // =========================================================
   // ДИНАМИЧЕСКОЕ МАСШТАБИРОВАНИЕ ПЕРСОНАЖЕЙ
   // =========================================================
+  // Простая формула: персонаж занимает 80% от доступной высоты экрана
+  // Доступная высота = высота окна - отступ сверху - отступ снизу
+  // Таким образом персонаж всегда виден полностью и не перекрывается интерфейсом
 
   function adjustCharacterScale() {
     var charElement = document.getElementById('charLayer');
     if (!charElement || charElement.classList.contains('hidden')) return;
     
-    var windowWidth = window.innerWidth;
-    var windowHeight = window.innerHeight;
-    var aspectRatio = windowWidth / windowHeight;
+    // Получаем значения отступов из CSS переменных
+    var topSpacing = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topSpacing')) || 0;
+    var bottomSpacing = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bottomSpacing')) || 0;
     
-    // Получаем реальные размеры изображения после загрузки
-    if (charElement.complete && charElement.naturalWidth > 0) {
-      var imgWidth = charElement.naturalWidth;
-      var imgHeight = charElement.naturalHeight;
-      var imgAspect = imgWidth / imgHeight;
-      
-      // Если изображение слишком широкое для вертикального экрана
-      if (imgAspect > 0.8 && aspectRatio < 0.6) {
-        // Для широких персонажей на узких экранах - ограничиваем по ширине
-        charElement.style.height = 'auto';
-        charElement.style.width = 'min(90vw, 800px)';
-        charElement.style.maxHeight = '85vh';
-      } else {
-        // Стандартное поведение
-        charElement.style.height = '85vh';
-        charElement.style.width = 'auto';
-      }
-    }
+    // Доступная высота = высота окна минус отступы
+    var availableHeight = window.innerHeight - topSpacing - bottomSpacing;
     
-    // Корректировка позиции для очень высоких экранов
-    if (windowHeight > 2000) {
-      var bottomOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bottomSpacing')) || 200;
-      charElement.style.bottom = bottomOffset + 'px';
-    }
+    // Персонаж занимает ровно 80% от доступной высоты
+    // 80% выбрано, чтобы:
+    // - персонаж был крупным и хорошо видимым
+    // - оставалось пространство над головой и под ногами
+    // - диалоговое окно не перекрывало персонаж
+    var charHeight = Math.round(availableHeight * 0.95);
+    
+    // Применяем высоту
+    charElement.style.height = charHeight + 'px';
+    charElement.style.width = 'auto'; // ширина подстроится пропорционально
+    
+    console.log('[Engine] Character scale:', {
+      windowHeight: window.innerHeight,
+      topSpacing: topSpacing,
+      bottomSpacing: bottomSpacing,
+      availableHeight: availableHeight,
+      charHeight: charHeight,
+      percent: Math.round(charHeight / window.innerHeight * 100) + '% от окна',
+      percentAvailable: '80% от доступной'
+    });
   }
 
   // Вызываем при загрузке изображения персонажа
@@ -2106,6 +2108,8 @@ function applySpacingSettings() {
   document.documentElement.style.setProperty('--bottomSpacing', bottomSpacing + 'px');
   
   console.log(`[Engine] Отступы: сверху ${topSpacing}px, снизу ${bottomSpacing}px`);
+
+  setTimeout(adjustCharacterScale, 100); // пересчитываем размер персонажа
 }
 
   // Управление размытым фоном

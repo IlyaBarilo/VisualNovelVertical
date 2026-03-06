@@ -8,7 +8,7 @@ body {
 }
 
 :root{
-  --uiScale: 1.5;            /* общий множитель интерфейса */
+  --uiScale: 15.5;            /* общий множитель интерфейса */
   --baseFontPx: 16px;      /* базовый размер */
   --uiBottomOffset: calc(14px + env(safe-area-inset-bottom, 0px));
   --topSpacing: 0px;      /* добавить сюда */
@@ -52,12 +52,50 @@ body {
   left: 50%;
   bottom: var(--bottomSpacing); /* поднимаем над нижним отступом */
   transform: translateX(-50%);
-  width: min(95vw, 800px);
-  height: 75vh;
+  width: auto; /* ширина автоматически подстроится под высоту */
+  height: auto; /* высота будет задана через JS */
+  max-width: 98vw; /* защита от слишком широких изображений */
+  max-height: calc(100vh - var(--topSpacing) - var(--bottomSpacing)); /* не больше доступной высоты */
   object-fit: contain;      /* персонажа обычно не режем */
   object-position: center bottom;
   filter: drop-shadow(0 12px 24px rgba(0,0,0,0.55));
   z-index: 3; /* ВЫШЕ всего */
+  pointer-events: none; /* чтобы клики проходили сквозь персонажа */
+}
+
+/* Для очень широких экранов (планшеты в альбомной ориентации) */
+@media (min-aspect-ratio: 4/3) {
+  .char {
+    height: 90vh;
+    max-height: 85vh; /* на широких экранах чуть меньше */
+    max-width: min(80vw, 1000px);
+  }
+}
+
+/* Для очень высоких экранов (вертикальные 4K) */
+@media (min-height: 2000px) {
+  .char {
+    height: 70vh; /* на очень высоких экранах уменьшаем, чтобы не упираться в границы */
+    max-height: 75vh;
+    max-width: min(90vw, 1500px);
+  }
+}
+
+/* Для экранов с большой шириной (4K в альбомной) */
+@media (min-width: 2500px) and (max-aspect-ratio: 16/9) {
+  .char {
+    height: 80vh;
+    max-height: 80vh;
+    max-width: min(70vw, 1800px);
+  }
+}
+
+/* Коррекция для больших отступов - уменьшаем персонажа */
+@media (min-height: 1000px) {
+  .char {
+    max-height: calc(90vh - var(--bottomSpacing) - var(--topSpacing));
+    /* Учитываем отступы сверху и снизу */
+  }
 }
 
 /* Затемнение/оверлей */
