@@ -57,10 +57,22 @@ var profiler = {
 // Ставим первую метку
 profiler.mark('Скрипт начал загрузку');
 
+let __charSeq = 0;
+let __activeCharSeq = 0;
+
   // ---------- DOM ----------
   var elTitle = document.getElementById("title");
   var elBg = document.getElementById("bgLayer");
   var elChar = document.getElementById("charLayer");
+
+  // Жёстко скрываем персонажа на старте, чтобы не было первого "всплеска" когда появляется большого размера
+  if (elChar) {
+      elChar.classList.add("hidden");
+      elChar.src = "";
+      elChar.style.height = "0px";
+      elChar.style.maxHeight = "none";
+  }
+
   var elOverlay = document.getElementById("overlay");
 
   var elDialog = document.getElementById("dialog");
@@ -373,8 +385,17 @@ profiler.mark('Скрипт начал загрузку');
       "index:", state.actionIndex
     );
 
+    console.log('[FLOW] runCurrent:start', {
+      sceneId: state.sceneId,
+      actionIndex: state.actionIndex,
+      waitingNext: state.waitingNext,
+      nextLocked: state.nextLocked,
+      inGame: state.inGame
+    });
+
     // Запускаем выполнение action'ов, пока не дойдём до "say/text/choice/game", где нужно ждать.
     state.waitingNext = false;
+    state.nextLocked = false;
 
     // безопасность: если сцены нет
     var scene = state.sceneMap[state.sceneId];
@@ -402,16 +423,61 @@ profiler.mark('Скрипт начал загрузку');
       }
 
       var action = scene.actions[state.actionIndex];
+      console.log('[FLOW] runCurrent:action picked', {
+        sceneId: state.sceneId,
+        actionIndexBeforeInc: state.actionIndex,
+        action: action,
+        waitingNext: state.waitingNext,
+        nextLocked: state.nextLocked
+      });
       state.actionIndex++;
 
       if (!action || !action.type) continue;
 
       var shouldWait = executeAction(action);
-      if (shouldWait) {
-        state.waitingNext = true;
-        state.nextLocked = false; // готов принять ОДИН next
+
+      console.log('[FLOW] runCurrent:after executeAction', {
+        sceneId: state.sceneId,
+        actionIndexAfterInc: state.actionIndex,
+        actionType: action && action.type,
+        shouldWait: shouldWait,
+        waitingNext: state.waitingNext,
+        nextLocked: state.nextLocked
+      });
+
+      if (shouldWait === "async") {
+
+        console.log('[FLOW] runCurrent:enter async wait', {
+          sceneId: state.sceneId,
+          actionIndex: state.actionIndex,
+          actionType: action && action.type,
+          waitingNextBefore: state.waitingNext,
+          nextLockedBefore: state.nextLocked
+        });
+
+
+        // Ждём внутреннего завершения действия (например, загрузки персонажа),
+        // но НЕ разрешаем пользовательский клик "дальше".
+        state.waitingNext = false;
+        state.nextLocked = true;
         return;
       }
+
+      if (shouldWait === true) {
+        console.log('[FLOW] runCurrent:enter user wait', {
+          sceneId: state.sceneId,
+          actionIndex: state.actionIndex,
+          actionType: action && action.type,
+          waitingNextBefore: state.waitingNext,
+          nextLockedBefore: state.nextLocked
+        });
+
+        // Обычное ожидание пользовательского next
+        state.waitingNext = true;
+        state.nextLocked = false;
+        return;
+      }
+      
     }
   }
 
@@ -474,16 +540,78 @@ profiler.mark('Скрипт начал загрузку');
             }
 
             const src = resolveAsset(null, action.charId, action.emotion);
+            if (!src) {
+              setCharacter(null, action.pos, action.charId);
+              return false;
+            }
             console.log('[Engine CHAR] Resolved src:', src);
-            setCharacter(src, action.pos, action.charId);
+            console.log('[SCRIPT FLOW] char action -> setCharacter', {
+              actionIndex: state.actionIndex - 1,
+              action: action,
+              resolvedSrc: src,
+              pos: action.pos,
+              charId: action.charId
+            });
+            setCharacter(src, action.pos, action.charId, function() {
+                state.nextLocked = false;
+                state.waitingNext = false;
+                runCurrent();
+            });
         } else {
-            // Старый формат для обратной совместимости
             console.log('[Engine CHAR] Old format - src:', action.src);
-            const src = resolveAsset(action.src);
-            console.log('[Engine CHAR] Resolved src (old):', src);
-            setCharacter(resolveAsset(action.src), action.pos);
+
+            const resolved = resolveAsset(action.src);
+            console.log('[Engine CHAR] Resolved src (old):', resolved);
+
+            console.log('[SCRIPT FLOW] char action(old) -> setCharacter', {
+              actionIndex: state.actionIndex - 1,
+              action: action,
+              resolvedSrc: resolved,
+              pos: action.pos
+            });
+
+            // Старый формат с null = просто скрыть персонажа, без async-ожидания
+            if (!resolved) {
+              console.log('[SCRIPT FLOW] char action(old) -> hide immediately', {
+                sceneId: state.sceneId,
+                actionIndex: state.actionIndex - 1,
+                action: action
+              });
+
+              setCharacter(null, action.pos, null);
+              return false;
+            }
+
+            // Если картинка есть — это уже асинхронная загрузка
+            setCharacter(resolved, action.pos, null, function() {
+              console.log('[FLOW] char(old):done callback start', {
+                sceneId: state.sceneId,
+                actionIndex: state.actionIndex,
+                waitingNextBefore: state.waitingNext,
+                nextLockedBefore: state.nextLocked
+              });
+
+              state.nextLocked = false;
+              state.waitingNext = false;
+
+              console.log('[FLOW] char(old):done callback before runCurrent', {
+                sceneId: state.sceneId,
+                actionIndex: state.actionIndex,
+                waitingNextAfterReset: state.waitingNext,
+                nextLockedAfterReset: state.nextLocked
+              });
+
+              runCurrent();
+            });
+
+            console.log('[SCRIPT FLOW] char action(old) paused until image load', {
+              sceneId: state.sceneId,
+              actionIndex: state.actionIndex - 1,
+              action: action
+            });
+
+            return "async";
         }
-        return false;
 
       case "say":
         // Новый формат: { type: "say", charVar: "anna", text: "..." }
@@ -637,46 +765,114 @@ profiler.mark('Скрипт начал загрузку');
     // CSS должен работать сам через переменные
   }
 
-  function setCharacter(src, pos, charId) {
-    console.log('[Engine setCharacter] Called with:', { src, pos, charId });
-    console.log('[Engine setCharacter] elChar element:', elChar);
+  function setCharacter(src, pos, charId, done) {
     
-    if (!src) {
-        console.log('[Engine setCharacter] No src, hiding character');
-        elChar.classList.add("hidden");
-        elChar.src = "";
-        // Не вызываем adjustCharacterScale при скрытии
-        return;
-    }
+      console.log('[Engine setCharacter] Called with:', { src, pos, charId });
+      console.log('[Engine setCharacter] elChar element:', elChar);
 
-    console.log('[Engine setCharacter] Setting src:', src);
-    elChar.src = src;
-    elChar.classList.remove("hidden");
-    
-    // Проверяем, загрузилось ли изображение
-    elChar.onload = function() {
-        console.log('[Engine setCharacter] Image loaded successfully:', src);
-    };
-    elChar.onerror = function() {
-        console.log('[Engine setCharacter] Image failed to load:', src);
-    };
-    
-    // Сохраняем ID персонажа для возможного использования
-    if (charId) {
-        elChar.dataset.charId = charId;
-    }
+      const seq = ++__charSeq;
+      __activeCharSeq = seq;
 
-    // pos — опционально (например: "center", "left", "right")
-    if (pos === "left") {
-        elChar.style.left = "35%";
-        elChar.style.transform = "translateX(-50%)";
-    } else if (pos === "right") {
-        elChar.style.left = "65%";
-        elChar.style.transform = "translateX(-50%)";
-    } else {
-        elChar.style.left = "50%";
-        elChar.style.transform = "translateX(-50%)";
-    }
+      console.log('[CHAR FLOW] setCharacter:start', {
+        seq,
+        src,
+        pos,
+        charId,
+        currentSrc: elChar ? elChar.getAttribute('src') : null,
+        hidden: elChar ? elChar.classList.contains('hidden') : null,
+        currentHeight: elChar ? elChar.style.height : null
+      });
+
+
+      if (!src) {
+          console.warn('[CHAR FLOW] hide character', {
+              src,
+              currentDomSrc: elChar.currentSrc || elChar.src,
+              hiddenBeforeHide: elChar.classList.contains('hidden'),
+              currentHeight: elChar.style.height,
+              currentOffsetHeight: elChar.offsetHeight,
+              charId: elChar.dataset ? elChar.dataset.charId : null
+          });
+
+          console.log('[Engine setCharacter] No src, hiding character');
+          elChar.classList.add("hidden");
+          elChar.src = "";
+
+          if (done) done();
+          return;
+      }
+
+      // Позиционирование можно применить заранее
+      if (pos === "left") {
+          elChar.style.left = "35%";
+          elChar.style.transform = "translateX(-50%)";
+      } else if (pos === "right") {
+          elChar.style.left = "65%";
+          elChar.style.transform = "translateX(-50%)";
+      } else {
+          elChar.style.left = "50%";
+          elChar.style.transform = "translateX(-50%)";
+      }
+
+      if (charId) {
+          elChar.dataset.charId = charId;
+      }
+
+      // Скрываем до полной подготовки
+      elChar.classList.add("hidden");
+      elChar.style.height = "0px";
+      elChar.style.maxHeight = "none";
+
+      elChar.onload = null;
+      elChar.onerror = null;
+
+      elChar.onload = function() {
+          console.log('[Engine setCharacter] Image loaded successfully:', src);
+
+          console.log('[CHAR FLOW] onload', {
+            seq,
+            activeSeq: __activeCharSeq,
+            src,
+            domSrc: elChar.currentSrc || elChar.src,
+            hiddenBeforeShow: elChar.classList.contains('hidden'),
+            heightBeforeScale: elChar.style.height
+          });
+
+
+          // Сначала показываем, чтобы adjustCharacterScale не вышел по hidden
+          elChar.classList.remove("hidden");
+
+          // Потом применяем правильный размер
+          adjustCharacterScale();
+
+          // И даём браузеру кадр закрепить layout
+          requestAnimationFrame(function() {
+              adjustCharacterScale();
+              if (done) done();
+          });
+      };
+
+      elChar.onerror = function() {
+          console.log('[Engine setCharacter] Image failed to load:', src);
+
+          console.log('[CHAR FLOW] onerror', {
+            seq,
+            activeSeq: __activeCharSeq,
+            src,
+            domSrc: elChar.currentSrc || elChar.src
+          });
+      };
+
+      if (seq !== __activeCharSeq) {
+        console.warn('[CHAR FLOW] stale onload ignored', {
+          seq,
+          activeSeq: __activeCharSeq,
+          src
+        });
+      }
+
+      console.log('[Engine setCharacter] Setting src:', src);
+      elChar.src = src;
   }
 
   function showDialog(name, text, color) {
@@ -1177,8 +1373,18 @@ window.addEventListener("resize", function() {
   // ДИНАМИЧЕСКОЕ МАСШТАБИРОВАНИЕ ПЕРСОНАЖЕЙ
   // =========================================================
   function adjustCharacterScale() {
+
+    console.log('[CHAR SCALE] start', {
+      src: elChar ? (elChar.currentSrc || elChar.src) : null,
+      hidden: elChar ? elChar.classList.contains('hidden') : null,
+      styleHeightBefore: elChar ? elChar.style.height : null,
+      naturalWidth: elChar ? elChar.naturalWidth : null,
+      naturalHeight: elChar ? elChar.naturalHeight : null,
+      windowHeight: window.innerHeight
+    });
+
     var char = document.getElementById('charLayer');
-    if (!char || char.classList.contains('hidden')) return;
+    if (!char) return;
     
     var topSpacing = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topSpacing')) || 0;
     var bottomSpacing = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bottomSpacing')) || 0;
@@ -1191,6 +1397,14 @@ window.addEventListener("resize", function() {
     
     // Применяем к персонажу
     char.style.height = targetCharHeight + 'px';
+
+    console.log('[CHAR SCALE] applied', {
+      src: char.currentSrc || char.src,
+      targetCharHeight,
+      styleHeightAfter: char.style.height,
+      offsetHeight: char.offsetHeight
+    });
+
     // Сбрасываем max-height, чтобы не было конфликтов
     char.style.maxHeight = 'none';
     
@@ -1208,23 +1422,6 @@ window.addEventListener("resize", function() {
       console.log('[Engine] Character actual height after load:', char.offsetHeight);
     }, 200);
   }
-
-// Вызываем после загрузки персонажа
-var originalSetCharacter = setCharacter;
-setCharacter = function(src, pos, charId) {
-  originalSetCharacter(src, pos, charId);
-  // Применяем размеры сразу
-  adjustCharacterScale();
-  
-  // И ещё раз после загрузки изображения
-  if (src) {
-    var img = new Image();
-    img.onload = function() {
-      adjustCharacterScale();
-    };
-    img.src = src;
-  }
-};
 
 // Также вызываем при изменении размера
 window.addEventListener("resize", adjustCharacterScale);
