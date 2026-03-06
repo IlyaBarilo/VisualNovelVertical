@@ -1168,50 +1168,34 @@ function applyUiScale() {
     var dialog = document.getElementById('dialog');
     var choices = document.getElementById('choices');
     var topbar = document.querySelector('.topbar');
-    var btns = document.querySelectorAll('.btn');
     var nameBox = document.getElementById('nameBox');
     var textBox = document.getElementById('textBox');
-    
+
     var baseFont = 16;
     var dialogFontSize = (baseFont * finalScale) + 'px';
-    var btnFontSize = (14 * finalScale) + 'px';
     
     console.log('[SCALE] baseFont:', baseFont);
     console.log('[SCALE] dialogFontSize:', dialogFontSize);
-    console.log('[SCALE] btnFontSize:', btnFontSize);
     
     if (dialog) {
-        var oldSize = dialog.style.fontSize;
         dialog.style.fontSize = dialogFontSize;
-        console.log('[SCALE] Dialog font size changed from', oldSize, 'to', dialog.style.fontSize);
-        console.log('[SCALE] Dialog computed style:', getComputedStyle(dialog).fontSize);
-    } else {
-        console.log('[SCALE] Dialog element not found!');
     }
-    
+
     if (choices) {
         choices.style.fontSize = dialogFontSize;
-        console.log('[SCALE] Choices font size set to:', choices.style.fontSize);
     }
-    
+
     if (topbar) {
-        topbar.style.fontSize = dialogFontSize;
-        console.log('[SCALE] Topbar font size set to:', topbar.style.fontSize);
+        topbar.style.fontSize = (14 * finalScale) + 'px';
     }
-    
+
     if (nameBox) {
-        nameBox.style.fontSize = (14 * finalScale) + 'px';
+        nameBox.style.fontSize = (15 * finalScale) + 'px';
     }
-    
+
     if (textBox) {
         textBox.style.fontSize = dialogFontSize;
     }
-    
-    btns.forEach((btn, index) => {
-        var oldBtnSize = btn.style.fontSize;
-        btn.style.fontSize = btnFontSize;
-        console.log(`[SCALE] Button ${index} (${btn.textContent}) font size:`, oldBtnSize, '->', btn.style.fontSize);
-    });
     
     console.log('[SCALE] ========== APPLY UI SCALE END ==========');
 }

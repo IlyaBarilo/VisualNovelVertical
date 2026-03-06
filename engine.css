@@ -97,51 +97,57 @@ body {
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5em;
   z-index: 10;
+  flex-wrap: wrap;
 }
 
 /* Кнопки */
 .btn {
   background: rgba(0,0,0,0.55);
   color: #fff;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.8rem; /* rem - фиксировано относительно базового */
+  border: max(1px, 0.05em) solid rgba(255,255,255,0.18);
+  border-radius: 0.65em;
+  padding: 0.55em 0.9em;
+  font-size: 0.85em;
+  line-height: 1.1;
+  min-height: 2.3em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Слайдер */
 .slider {
-  width: 5rem;                   /* ИСПРАВЛЕНО: было calc(80px * var(--uiScale)) */
-  height: 1.25rem;               /* ИСПРАВЛЕНО: было calc(20px * var(--uiScale)) */
+  width: 6em;
+  height: 1.6em;
 }
 
 /* Диалог */
 .dialog {
   position: absolute;
-  left: 0.6rem;
-  right: 0.6rem;
+  left: 0.7em;
+  right: 0.7em;
   bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
-  padding: 0.5rem;               /* ИСПРАВЛЕНО: было calc(8px * var(--uiScale)) */ /* масштабируем отступы */
-  border-radius: 0.75rem;        /* ИСПРАВЛЕНО: было calc(12px * var(--uiScale)) */ /* масштабируем скругление */
+  padding: 0.7em;
+  border-radius: 0.85em;
   background: rgba(0,0,0,0.60);
-  border: 1px solid rgba(255,255,255,0.14);
+  border: max(1px, 0.04em) solid rgba(255,255,255,0.14);
   backdrop-filter: blur(4px);
   outline: none;
   font-size: 1rem;
   z-index: 10;
-  transition: padding-bottom 0.2s ease; /* плавное изменение */
+  transition: padding-bottom 0.2s ease;
 }
 
 /* Диалог без подсказки */
 .dialog.no-hint {
-   padding-bottom: 0.4rem;
+   padding-bottom: 0.7em;
 }
 
 /* Диалог с подсказкой - добавляем место для hint */
 .dialog.has-hint {
-  padding-bottom: 0.3rem;
+  padding-bottom: 0.5em;
 }
 
 /* Когда показан выбор — диалог скрываем целиком */
@@ -149,17 +155,18 @@ body {
   display: none !important;
 }
 
-/* Имя персонажа - ОСТАВЛЯЕМ rem, так как должно быть фиксировано относительно базового */
+/* Имя персонажа */
 .name {
   display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.4rem;
+  padding: 0.35em 0.75em;
+  border-radius: 0.55em;
   background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.12);
-  margin-bottom: 0.3rem;
+  border: max(1px, 0.05em) solid rgba(255,255,255,0.12);
+  margin-bottom: 0.45em;
   font-weight: 700;
-  font-size: 0.8rem; /* rem - фиксировано относительно базового */
+  font-size: 0.9em;
   line-height: 1.2;
+  min-height: 1.9em;
 }
 
 .text {
@@ -185,28 +192,31 @@ body {
 /* Выбор */
 .choices {
   position: absolute;
-  left: 0.6rem;                  /* ИСПРАВЛЕНО: было 10px */
-  right: 0.6rem;                 /* ИСПРАВЛЕНО: было 10px */
-  top: 0.6rem;                   /* ИСПРАВЛЕНО: было 10px */
+  left: 0.8em;
+  right: 0.8em;
+  top: 0.8em;
   bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
 
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;       /* КЛЮЧ: прижимаем кнопки к низу */
-  gap: 0.5rem;                   /* ИСПРАВЛЕНО: было 10px */
+  justify-content: flex-end;
+  gap: 0.6em;
 
   z-index: 11;
+  font-size: 1em;
 }
 
 .choiceBtn {
   width: 100%;
   text-align: left;
-  padding: 0.5rem 0.7rem;
-  border-radius: 0.6rem;
+  padding: 0.8em 1em;
+  border-radius: 0.8em;
   background: rgba(0,0,0,0.55);
-  border: 1px solid rgba(255,255,255,0.18);
+  border: max(1px, 0.05em) solid rgba(255,255,255,0.18);
   color: #fff;
-  font-size: 0.95em; /* ВОЗВРАЩАЕМ em */
+  font-size: 0.95em;
+  line-height: 1.3;
+  min-height: 3em;
 }
 
 /* Модалка мини-игры */
