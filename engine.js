@@ -1184,27 +1184,44 @@ window.addEventListener("resize", function() {
     // Высота доступная для персонажа (с учетом отступов)
     var availableHeight = window.innerHeight - topSpacing - bottomSpacing;
     
-    // Максимальная высота персонажа (не более 75% экрана)
-    var maxCharHeight = Math.min(availableHeight * 0.85, window.innerHeight * 0.75);
+    // Максимальная высота персонажа (не более 85% экрана)
+    var targetCharHeight = Math.min(availableHeight * 0.85, window.innerHeight * 0.85);
     
     // Применяем к персонажу
-    char.style.height = maxCharHeight + 'px';
+    char.style.height = targetCharHeight + 'px';
+    // Сбрасываем max-height, чтобы не было конфликтов
+    char.style.maxHeight = 'none';
     
     console.log('[Engine] Character scale applied:', {
       windowHeight: window.innerHeight,
       topSpacing: topSpacing,
       bottomSpacing: bottomSpacing,
       availableHeight: availableHeight,
-      charHeight: maxCharHeight
+      targetCharHeight: targetCharHeight,
+      actualHeight: char.offsetHeight
     });
+
+    // Проверяем фактическую высоту после загрузки изображения
+    setTimeout(function() {
+      console.log('[Engine] Character actual height after load:', char.offsetHeight);
+    }, 200);
   }
 
 // Вызываем после загрузки персонажа
 var originalSetCharacter = setCharacter;
 setCharacter = function(src, pos, charId) {
-    originalSetCharacter(src, pos, charId);
-    // Даем время на загрузку изображения
-    setTimeout(adjustCharacterScale, 100);
+  originalSetCharacter(src, pos, charId);
+  // Применяем размеры сразу
+  adjustCharacterScale();
+  
+  // И ещё раз после загрузки изображения
+  if (src) {
+    var img = new Image();
+    img.onload = function() {
+      adjustCharacterScale();
+    };
+    img.src = src;
+  }
 };
 
 // Также вызываем при изменении размера
