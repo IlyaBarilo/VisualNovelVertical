@@ -81,6 +81,7 @@ body {
   --dialog-padding-bottom-with-hint: 0.65em;
   --dialog-name-padding-top: 0.60em;
   --dialog-no-name-padding-top: 1.10em;
+  --dialog-bottom-gap: 0.6rem;
 
   /* =========================================================
      ИМЯ ПЕРСОНАЖА
@@ -258,7 +259,7 @@ body {
   position: absolute;
   left: var(--dialog-side-offset);
   right: var(--dialog-side-offset);
-  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
+  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing) + var(--dialog-bottom-gap));
   padding: var(--dialog-padding);
   border-radius: var(--dialog-radius);
   background: rgba(0,0,0,0.60);
@@ -325,7 +326,7 @@ body {
   left: var(--choices-side-offset);
   right: var(--choices-side-offset);
   top: var(--choices-top-offset);
-  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
+  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing) + var(--dialog-bottom-gap));
 
   display: flex;
   flex-direction: column;
@@ -390,7 +391,7 @@ body {
 /* Для очень узких/высоких окон можно чуть уменьшить текст */
 @media (max-aspect-ratio: 9/16) {
   .text { font-size: 0.97em; }
-  .choices { bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing)); }
+  .choices { bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing) + var(--dialog-bottom-gap)); }
 }
 
 /* ===== Панель статистики ===== */
@@ -540,7 +541,7 @@ body {
    Здесь руками обычно править не нужно: они приходят из top_spacing/bottom_spacing.
 */
 .choices {
-  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing));
+  bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing) + var(--dialog-bottom-gap));
 }
 
 .topbar {
@@ -550,7 +551,7 @@ body {
 /* Для очень узких экранов */
 @media (max-aspect-ratio: 9/16) {
   .choices { 
-    bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing)); 
+    bottom: calc(var(--uiBottomOffset) + var(--bottomSpacing) + var(--dialog-bottom-gap)); 
     z-index: 10;
   }
 }
