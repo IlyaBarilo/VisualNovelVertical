@@ -1154,25 +1154,54 @@
       text += "Сцен: " + stats.sceneCount + "\n";
       text += "Меню выбора: " + stats.choiceCount + "\n\n";
 
-
-      
       text += "=== ПРОВЕРКА ФАЙЛОВ ===\n\n";
       
-      // Отсутствующие файлы
-      if (fileStats.missing.length > 0) {
-        text += "❌ ОТСУТСТВУЮТ ФАЙЛЫ:\n";
-        fileStats.missing.forEach(item => {
-          text += `  ${item.path}\n`;
-          if (item.refs) {
-            item.refs.forEach(ref => text += `    используется в: ${ref}\n`);
-          }
-        });
-        text += "\n";
+      // Информация о звуковых файлах
+      var audioFiles = fileStats.files.filter(f => f.category === 'audio');
+      if (audioFiles.length > 0) {
+        text += "=== ЗВУКОВЫЕ ФАЙЛЫ ===\n\n";
+
+        // Отсутствующие файлы
+        if (fileStats.missing.length > 0) {
+          text += "❌ ОТСУТСТВУЮТ ФАЙЛЫ:\n";
+          fileStats.missing.forEach(item => {
+            text += `  ${item.path}\n`;
+            if (item.refs) {
+              item.refs.forEach(ref => text += `    используется в: ${ref}\n`);
+            }
+          });
+          text += "\n";
+        } else {
+          text += "✅ Все файлы найдены\n\n";
+        }
+
       } else {
-        text += "✅ Все файлы найдены\n\n";
+        text += "✅ Звуковые файлы не используются\n\n";
+      }
+
+      
+      // Ошибки размеров
+      if (fileStats.sizeErrors.length > 0) {
+        text += "❌ ПРОБЛЕМЫ С РАЗМЕРАМИ ИЗОБРАЖЕНИЙ:\n\n";
+        
+        fileStats.sizeErrors.forEach(item => {
+          text += `Файл: ${item.path}\n`;
+          text += `  Текущий размер: ${item.width}×${item.height}\n`;
+          if (item.category === 'bg') {
+            text += `  Требуется: не менее 1080×1920\n`;
+          } else if (item.category === 'char') {
+            text += `  Требуется: не менее 500×1200\n`;
+          }
+          text += `  Проблемы: ${item.errors.join(', ')}\n`;
+          if (item.refs) {
+            text += `  Используется в: ${item.refs.join(', ')}\n`;
+          }
+          text += "\n";
+        });
+      } else {
+          text += "✅ Все изображения соответствуют требованиям по размеру\n\n";
       }
       
-      // Статистика по файлам
       text += "=== СТАТИСТИКА ФАЙЛОВ ===\n\n";
       text += "Всего файлов: " + fileStats.files.length + "\n";
       
@@ -1180,29 +1209,15 @@
       var imageCount = 0;
       var audioCount = 0;
       fileStats.files.forEach(f => {
-          if (f.path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) imageCount++;
-          else if (f.path.match(/\.(mp3|wav|ogg|flac|m4a)$/i)) audioCount++;
+        if (f.path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) imageCount++;
+        else if (f.path.match(/\.(mp3|wav|ogg|flac|m4a)$/i)) audioCount++;
       });
       
       text += "  Изображения: " + imageCount + "\n";
       text += "  Аудио: " + audioCount + "\n\n";
-      
-      // Размеры
-      text += "Объем:\n";
-      
-      // Функция для форматирования размера
-      function formatSize(bytes) {
-          if (bytes < 1024) return bytes + " B";
-          if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
-          return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-      }
-      
-      text += "  Изображения: " + formatSize(fileStats.imagesSize) + "\n";
-      text += "  Аудио: " + formatSize(fileStats.audioSize) + "\n";
-      text += "  Всего: " + formatSize(fileStats.totalSize) + "\n\n";
 
       
-      
+
 
       text += "=== ОБЪЁМ ТЕКСТА ===\n\n";
 
@@ -1274,13 +1289,12 @@
   // Отброшен вариант: Проверка файлов через чтение первых 32 байт не возможно - ошибки статистики - указано, что файлов нет когда они есть
 
   // Проверка файлов через fetch с HEAD запросом (работает в file:// ограниченно)
+  // Проверка файлов на соответствие требованиям
   function checkAssetsFiles() {
     return new Promise((resolve) => {
         const result = {
             missing: [],
-            totalSize: 0,
-            imagesSize: 0,
-            audioSize: 0,
+            sizeErrors: [], // файлы с неправильными размерами
             files: []
         };
         
@@ -1295,7 +1309,7 @@
         // Фоны
         if (STORY.assets.backgrounds) {
             Object.entries(STORY.assets.backgrounds).forEach(([id, path]) => {
-                allFiles.push({ id, path, type: 'image', category: 'bg', ref: id });
+                allFiles.push({ id, path, type: 'bg', category: 'background', ref: id });
             });
         }
         
@@ -1307,9 +1321,11 @@
                         allFiles.push({ 
                             id: `${charId}_${emotion}`, 
                             path, 
-                            type: 'image', 
-                            category: 'char',
-                            ref: `${charId} (${emotion})`
+                            type: 'char', 
+                            category: 'character',
+                            ref: `${charId} (${emotion})`,
+                            charId: charId,
+                            emotion: emotion
                         });
                     });
                 }
@@ -1318,11 +1334,17 @@
         
         // Аудио
         if (STORY.assets.audio) {
-            Object.entries(STORY.assets.audio).forEach(([id, path]) => {
-                allFiles.push({ id, path, type: 'audio', category: 'audio', ref: id });
+          Object.entries(STORY.assets.audio).forEach(([id, path]) => {
+            allFiles.push({ 
+              id: id, 
+              path: path, 
+              type: 'audio', 
+              category: 'audio', 
+              ref: id 
             });
+          });
         }
-        
+
         if (allFiles.length === 0) {
             resolve(result);
             return;
@@ -1351,12 +1373,38 @@
                     if (fileResults[path] && fileResults[path].success) {
                         result.files.push(fileResults[path].data);
                         
-                        if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                            result.imagesSize += fileResults[path].data.size;
-                        } else {
-                            result.audioSize += fileResults[path].data.size;
+                        // Проверяем соответствие требованиям
+                        const fileData = fileResults[path].data;
+                        if (fileData.width && fileData.height) {
+                            let required = { width: 0, height: 0 };
+                            
+                            if (fileData.category === 'bg') {
+                                required = { width: 1080, height: 1920 };
+                            } else if (fileData.category === 'char') {
+                                required = { width: 500, height: 1200 };
+                            }
+                            
+                            if (required.width > 0 && required.height > 0) {
+                                const errors = [];
+                                if (fileData.width < required.width) {
+                                    errors.push(`ширина ${fileData.width}px < ${required.width}px`);
+                                }
+                                if (fileData.height < required.height) {
+                                    errors.push(`высота ${fileData.height}px < ${required.height}px`);
+                                }
+                                
+                                if (errors.length > 0) {
+                                    result.sizeErrors.push({
+                                        path: path,
+                                        refs: pathGroups[path].map(f => `${f.category}: ${f.ref}`),
+                                        width: fileData.width,
+                                        height: fileData.height,
+                                        required: required,
+                                        errors: errors
+                                    });
+                                }
+                            }
                         }
-                        result.totalSize += fileResults[path].data.size;
                     } else {
                         result.missing.push({
                             path: path,
@@ -1369,49 +1417,10 @@
             }
         }
         
-        // Проверяем каждый уникальный файл через HEAD запрос
+        // Проверяем каждый уникальный файл через Image объект
         uniquePaths.forEach(path => {
-            // Пробуем получить размер через HEAD запрос
-            fetch(path, { method: 'HEAD', cache: 'no-cache' })
-                .then(response => {
-                    if (response.ok) {
-                        const contentLength = response.headers.get('content-length');
-                        const contentType = response.headers.get('content-type');
-                        
-                        let size = 0;
-                        if (contentLength) {
-                            size = parseInt(contentLength, 10);
-                        }
-                        
-                        fileResults[path] = {
-                            success: true,
-                            data: {
-                                path: path,
-                                size: size,
-                                sizeKB: Math.round(size / 1024),
-                                sizeMB: (size / 1024 / 1024).toFixed(2),
-                                type: contentType,
-                                refs: pathGroups[path].map(f => `${f.category}: ${f.ref}`)
-                            }
-                        };
-                        
-                        loadedCount++;
-                    } else {
-                        // Если HEAD не работает, пробуем получить через Image/Audio
-                        fallbackCheck(path, pathGroups);
-                    }
-                    checkComplete();
-                })
-                .catch(() => {
-                    // Если fetch не работает (например, в file://), используем fallback
-                    fallbackCheck(path, pathGroups);
-                    checkComplete();
-                });
-        });
-        
-        function fallbackCheck(path, pathGroups) {
             if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                // Проверка изображения через Image
+                // Проверка изображения
                 const img = new Image();
                 let isResolved = false;
                 
@@ -1428,32 +1437,17 @@
                     isResolved = true;
                     clearTimeout(timeout);
                     
-                    // Более точная оценка для разных форматов
-                    let estimatedSize = 0;
-                    const format = path.split('.').pop().toLowerCase();
-                    
-                    // Примерные размеры для разных форматов (в байтах на пиксель)
-                    if (format === 'jpg' || format === 'jpeg') {
-                        estimatedSize = img.width * img.height * 0.5; // JPEG примерно 0.5 байта на пиксель
-                    } else if (format === 'png') {
-                        estimatedSize = img.width * img.height * 2; // PNG примерно 2 байта на пиксель
-                    } else if (format === 'gif') {
-                        estimatedSize = img.width * img.height * 1.5; // GIF примерно 1.5 байта на пиксель
-                    } else {
-                        estimatedSize = img.width * img.height * 1; // среднее
-                    }
+                    // Определяем категорию по первому файлу в группе
+                    const firstFile = pathGroups[path][0];
+                    const category = firstFile.type; // 'bg' или 'char'
                     
                     fileResults[path] = {
                         success: true,
                         data: {
                             path: path,
-                            size: Math.round(estimatedSize),
-                            sizeKB: Math.round(estimatedSize / 1024),
-                            sizeMB: (estimatedSize / 1024 / 1024).toFixed(2),
                             width: img.width,
                             height: img.height,
-                            format: format,
-                            estimated: true, // помечаем как оценочное
+                            category: category,
                             refs: pathGroups[path].map(f => `${f.category}: ${f.ref}`)
                         }
                     };
@@ -1472,72 +1466,50 @@
                 };
                 
                 img.src = path + '?' + Date.now(); // добавляем timestamp чтобы избежать кэша
-            } else {
-                // Проверка аудио
+              } else if (path.match(/\.(mp3|wav|ogg|flac|m4a)$/i)) {
+                // Проверка аудиофайла
                 const audio = new Audio();
                 let isResolved = false;
                 
                 const timeout = setTimeout(() => {
-                    if (!isResolved) {
-                        isResolved = true;
-                        errorCount++;
-                        checkComplete();
-                    }
+                  if (!isResolved) {
+                    isResolved = true;
+                    errorCount++;
+                    checkComplete();
+                  }
                 }, 5000);
                 
                 audio.oncanplaythrough = function() {
-                    if (isResolved) return;
-                    isResolved = true;
-                    clearTimeout(timeout);
-                    
-                    // Оценка размера аудио на основе длительности и битрейта
-                    let estimatedSize = 0;
-                    const duration = audio.duration || 60;
-                    
-                    // Предполагаем битрейт 128 kbps для MP3, 256 kbps для WAV/FLAC
-                    const format = path.split('.').pop().toLowerCase();
-                    let bitrate = 128; // kbps по умолчанию
-                    
-                    if (format === 'mp3') bitrate = 128;
-                    else if (format === 'ogg') bitrate = 160;
-                    else if (format === 'wav') bitrate = 1411; // несжатый WAV
-                    else if (format === 'flac') bitrate = 500;
-                    else if (format === 'm4a') bitrate = 256;
-                    
-                    // Размер в байтах = (битрейт * 1000 * длительность) / 8
-                    estimatedSize = (bitrate * 1000 * duration) / 8;
-                    
-                    fileResults[path] = {
-                        success: true,
-                        data: {
-                            path: path,
-                            size: Math.round(estimatedSize),
-                            sizeKB: Math.round(estimatedSize / 1024),
-                            sizeMB: (estimatedSize / 1024 / 1024).toFixed(2),
-                            duration: Math.round(duration),
-                            bitrate: bitrate,
-                            format: format,
-                            estimated: true, // помечаем как оценочное
-                            refs: pathGroups[path].map(f => `${f.category}: ${f.ref}`)
-                        }
-                    };
-                    
-                    loadedCount++;
-                    checkComplete();
+                  if (isResolved) return;
+                  isResolved = true;
+                  clearTimeout(timeout);
+                  
+                  fileResults[path] = {
+                    success: true,
+                    data: {
+                      path: path,
+                      category: 'audio',
+                      duration: Math.round(audio.duration),
+                      refs: pathGroups[path].map(f => `${f.category}: ${f.ref}`)
+                    }
+                  };
+                  
+                  loadedCount++;
+                  checkComplete();
                 };
                 
                 audio.onerror = function() {
-                    if (isResolved) return;
-                    isResolved = true;
-                    clearTimeout(timeout);
-                    
-                    errorCount++;
-                    checkComplete();
+                  if (isResolved) return;
+                  isResolved = true;
+                  clearTimeout(timeout);
+                  
+                  errorCount++;
+                  checkComplete();
                 };
                 
                 audio.src = path + '?' + Date.now();
             }
-        }
+        });
     });
   }
 
