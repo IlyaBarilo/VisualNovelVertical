@@ -1134,9 +1134,10 @@ function applyUiScale() {
     // JS считает только корневой масштаб,
     // а размеры конкретных компонентов берутся из CSS-токенов.
     var autoScale = window.innerHeight / UI_REFERENCE_HEIGHT;
-    autoScale = clamp(autoScale, 0.5, 10);
+    autoScale = clamp(autoScale, 0.25, 10);
 
-    var finalScale = Math.max(0.25, UI_FONT_SCALE * autoScale);
+    var finalScale = UI_FONT_SCALE * autoScale;
+    finalScale = clamp(finalScale, 0.25, 10);
 
     document.documentElement.style.setProperty("--uiScale", finalScale);
 
@@ -1152,8 +1153,10 @@ function applyUiScale() {
       autoScale: autoScale,
       uiFontScale: UI_FONT_SCALE,
       finalScale: finalScale,
-      baseFontSizePx: baseFontSize,
-      cssBaseFontSize: getComputedStyle(document.documentElement).fontSize
+      baseFontPx: baseFontPx,
+      baseFontSize: baseFontSize,
+      cssVarBaseFontSize: getComputedStyle(document.documentElement).getPropertyValue('--baseFontSize').trim(),
+      htmlFontSize: getComputedStyle(document.documentElement).fontSize
     });
 }
 
