@@ -1,0 +1,70 @@
+# Сборка zip архива для релиза GitHub
+name: Build ZIP for Release
+
+on:
+  # Запускать после публикации релиза
+  release:
+    types: [published]
+
+permissions:
+  # Нужно для загрузки файлов в релиз
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare release folder
+        run: |
+	  APP_NAME="${{ github.event.repository.name }}"
+          VERSION="${{ github.event.release.tag_name }}"
+
+          mkdir -p "build/$APP_NAME"
+          mkdir -p "build/$APP_NAME/assets"
+          
+          # Копируем основные файлы проекта
+          [ -f engine.css ] && cp engine.css "build/$APP_NAME/"
+          [ -f engine.js ] && cp engine.js "build/$APP_NAME/"
+          [ -f index.html ] && cp index.html "build/$APP_NAME/"
+          [ -f story.js ] && cp story.js "build/$APP_NAME/"
+          [ -f story-loader.js ] && cp story-loader.js "build/$APP_NAME/"
+
+          # Копируем медиафайлы из assets
+          if [ -d assets ]; then
+            find assets -type f \( \
+              -iname "*.jpg" -o \
+              -iname "*.jpeg" -o \
+              -iname "*.png" -o \
+              -iname "*.mp3" \
+            \) -exec cp {} "build/$APP_NAME/assets/" \;
+          fi
+
+          # Копируем все HTML файлы в корень (или сохраняем структуру)
+          [ -f index.html ] && cp index.html "build/$APP_NAME/"
+          [ -d css ] && cp -r *.css "build/$APP_NAME/"
+          [ -d js ] && cp -r *.js "build/$APP_NAME/"
+
+          # Подставляем номер версии в index.html
+          if [ -f "build/$APP_NAME/index.html" ]; then
+            sed -i "s/__VERSION__/$VERSION/g" "build/$APP_NAME/index.html"
+          fi
+
+      	  # Если нужно — README для пользователя
+          # [ -f README.md ] && cp README.md "build/$APP_NAME/"
+
+      - name: Create ZIP archive
+        run: |
+          APP_NAME="${{ github.event.repository.name }}"
+          VERSION="${{ github.event.release.tag_name }}"
+
+	  cd build
+          zip -r "../${APP_NAME}-${VERSION}.zip" "$APP_NAME"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip

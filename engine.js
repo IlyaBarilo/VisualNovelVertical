@@ -1534,6 +1534,8 @@ window.addEventListener("resize", adjustCharacterScale);
 
       var text = "";
 
+      text += "Версия программы: __VERSION__\n\n";
+
       text += "=== СТАТИСТИКА СЦЕНАРИЯ ===\n\n";
       text += "Название: " + (STORY.meta && STORY.meta.title ? STORY.meta.title : "(без названия)") + "\n";
       text += "Сцен: " + stats.sceneCount + "\n";
