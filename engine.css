@@ -50,8 +50,10 @@ body {
   --topbar-gap: 0.80rem;
   --topbar-title-size: 0.85em;
   --topbar-control-gap: 0.75rem;
-  --topbar-slider-width: 7.75rem;
+  --topbar-slider-width: 4.00rem;
   --topbar-slider-height: 1.55rem;
+  --topbar-slider-track-height: 0.32rem;
+  --topbar-slider-thumb-size: 1.05rem;
 
   /* =========================================================
      ОБЫЧНЫЕ КНОПКИ / КОНТРОЛЫ
@@ -248,11 +250,54 @@ body {
   line-height: 1.1;
 }
 
-/* Слайдер */
+
+
+/* Слайдер громкости */
 .slider {
   width: var(--topbar-slider-width);
   height: var(--topbar-slider-height);
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
 }
+
+/* Трек */
+.slider::-webkit-slider-runnable-track {
+  height: var(--topbar-slider-track-height);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.28);
+}
+
+.slider::-moz-range-track {
+  height: var(--topbar-slider-track-height);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.28);
+  border: none;
+}
+
+/* Бегунок */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--topbar-slider-thumb-size);
+  height: var(--topbar-slider-thumb-size);
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.25);
+  margin-top: calc((var(--topbar-slider-track-height) - var(--topbar-slider-thumb-size)) / 2);
+}
+
+.slider::-moz-range-thumb {
+  width: var(--topbar-slider-thumb-size);
+  height: var(--topbar-slider-thumb-size);
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.25);
+}
+
+
 
 /* Диалог */
 .dialog {
