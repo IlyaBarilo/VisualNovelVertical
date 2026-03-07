@@ -209,7 +209,7 @@ let __activeCharSeq = 0;
   // 1.0 = стандарт
   // 0.9 = немного меньше
   // 1.1 = немного больше
-  var UI_FONT_SCALE = 1.5;
+  var UI_FONT_SCALE = 1.4;
   console.log('[SCALE] UI_FONT_SCALE initialized:', UI_FONT_SCALE);
 
   // Высота экрана, под которую делался дизайн
