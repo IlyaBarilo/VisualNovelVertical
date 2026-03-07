@@ -60,7 +60,7 @@
         audio: {}
       },
       audioSettings: {
-        masterVolume: 0.8,
+        masterVolume: 0.2,
         muted: true
       },
       scenes: []

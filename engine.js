@@ -244,7 +244,7 @@ let __activeCharSeq = 0;
     bgm: new Audio(),
     sfx: new Audio(),
     muted: true,
-    masterVolume: 0.4,
+    masterVolume: 0.2,
     // для плавного затухания (если понадобится)
     fadeTimer: null
   };
@@ -311,7 +311,7 @@ let __activeCharSeq = 0;
 
   sliderVolume.addEventListener("input", function () {
     var v = parseInt(sliderVolume.value, 10);
-    if (isNaN(v)) v = 80;
+    if (isNaN(v)) v = 20;
     audio.masterVolume = clamp(v / 100, 0, 1);
     applyAudioSettings();
   });
