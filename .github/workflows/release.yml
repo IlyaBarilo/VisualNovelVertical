@@ -5,7 +5,19 @@ on:
   # Запускать после публикации релиза
   release:
     types: [published]
+  
+  # Ручной запуск из вкладки Actions
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Тег версии, например v0.1.0.2"
+        required: true
+        type: string
+      upload_to_release:
+        description: "Загрузить архивы в релиз"
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   # Нужно для загрузки файлов в релиз
@@ -19,6 +31,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+
+      - name: Detect version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION="${{ inputs.tag }}"
+          fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          
       - name: Prepare release folder
         run: |
           APP_NAME="${{ github.event.repository.name }}"
