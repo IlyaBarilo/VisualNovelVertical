@@ -5,6 +5,7 @@ on:
   # Запускать после публикации релиза
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   # Нужно для загрузки файлов в релиз
@@ -20,12 +21,12 @@ jobs:
 
       - name: Prepare release folder
         run: |
-	  APP_NAME="${{ github.event.repository.name }}"
+          APP_NAME="${{ github.event.repository.name }}"
           VERSION="${{ github.event.release.tag_name }}"
 
           mkdir -p "build/$APP_NAME"
           mkdir -p "build/$APP_NAME/assets"
-          
+
           # Копируем основные файлы проекта
           [ -f engine.css ] && cp engine.css "build/$APP_NAME/"
           [ -f engine.js ] && cp engine.js "build/$APP_NAME/"
@@ -48,9 +49,6 @@ jobs:
             sed -i "s/__VERSION__/$VERSION/g" "build/$APP_NAME/index.html"
           fi
 
-      	  # Если нужно — README для пользователя
-          # [ -f README.md ] && cp README.md "build/$APP_NAME/"
-
       - name: Create ZIP archive
         run: |
           APP_NAME="${{ github.event.repository.name }}"
@@ -60,12 +58,7 @@ jobs:
           zip -r "../${APP_NAME}-${VERSION}.zip" "$APP_NAME"
           cd ..
 
-          # Создаём копию архива с постоянным именем latest
           cp "${APP_NAME}-${VERSION}.zip" "${APP_NAME}-latest.zip"
-
-
-	  cd build
-          zip -r "../${APP_NAME}-${VERSION}.zip" "$APP_NAME"
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
