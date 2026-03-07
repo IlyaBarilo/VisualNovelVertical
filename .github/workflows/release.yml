@@ -43,11 +43,6 @@ jobs:
             \) -exec cp {} "build/$APP_NAME/assets/" \;
           fi
 
-          # Копируем все HTML файлы в корень (или сохраняем структуру)
-          [ -f index.html ] && cp index.html "build/$APP_NAME/"
-          [ -d css ] && cp -r *.css "build/$APP_NAME/"
-          [ -d js ] && cp -r *.js "build/$APP_NAME/"
-
           # Подставляем номер версии в index.html
           if [ -f "build/$APP_NAME/index.html" ]; then
             sed -i "s/__VERSION__/$VERSION/g" "build/$APP_NAME/index.html"
@@ -61,10 +56,20 @@ jobs:
           APP_NAME="${{ github.event.repository.name }}"
           VERSION="${{ github.event.release.tag_name }}"
 
+          cd build
+          zip -r "../${APP_NAME}-${VERSION}.zip" "$APP_NAME"
+          cd ..
+
+          # Создаём копию архива с постоянным именем latest
+          cp "${APP_NAME}-${VERSION}.zip" "${APP_NAME}-latest.zip"
+
+
 	  cd build
           zip -r "../${APP_NAME}-${VERSION}.zip" "$APP_NAME"
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip
+          files: |
+            ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip
+            ${{ github.event.repository.name }}-latest.zip
