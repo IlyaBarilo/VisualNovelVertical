@@ -460,6 +460,43 @@
         }, Promise.resolve());
       }
 
+      // Подключает доверенное расширение после подготовки DOM движка, не задерживая историю ожиданием user.js или init.
+      function loadUserExtension() {
+        var root = null;
+
+        // Убирает частично созданный интерфейс при отказе init; произвольные побочные эффекты авторского JS не откатываются.
+        function reportUserError(error) {
+          if (root) root.remove();
+          console.warn("[User] Расширение user.js отключено:", error);
+        }
+
+        loadScript("user.js", { optional: true }).then(function(result) {
+          if (!result.loaded) return;
+          var extension = window.VN_USER;
+          if (!extension || typeof extension.init !== "function") {
+            throw new Error("Ожидалась функция window.VN_USER.init(api).");
+          }
+
+          root = document.createElement("div");
+          root.id = "vn-user-root";
+          // Сосед app находится вне stage: нажатия расширения не доходят до обработчиков перелистывания и жестов сцены.
+          // Пустой слой пропускает нажатия; автор включает pointer-events только у собственных элементов.
+          root.style.cssText = "position:fixed;inset:0;z-index:40;pointer-events:none;";
+          document.body.appendChild(root);
+
+          var meta = window.STORY && window.STORY.meta;
+          // Это снимок идентификатора проекта и контейнер, а не доступ к изменяемому состоянию исполнителя.
+          var api = Object.freeze({
+            version: 1,
+            root: root,
+            projectId: meta && meta.projectId ? String(meta.projectId) : "",
+            isLocal: window.location.protocol === "file:"
+          });
+          // Bootstrap проходит эту точку один раз; restart истории не повторяет подключение счётчиков и создание UI.
+          return extension.init(api);
+        }).catch(reportUserError);
+      }
+
       // Показывает отдельные безопасные сообщения для ошибок сценария и обязательных файлов движка.
       function showBootstrapError(error) {
         var textBox = document.getElementById("textBox");
@@ -488,6 +525,7 @@
         .then(function() {
           return loadScriptsInOrder(ENGINE_SCRIPTS);
         })
+        .then(loadUserExtension)
         .catch(showBootstrapError);
     })();
   </script>

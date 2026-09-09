@@ -17,7 +17,7 @@ const e2eServerPort = 41739;
 const e2eServerOrigin = `http://127.0.0.1:${e2eServerPort}`;
 const e2eLocalhostOrigin = `http://localhost:${e2eServerPort}`;
 const allowedEngineOrigins = new Set([e2eServerOrigin, e2eLocalhostOrigin]);
-const blockedLocalRoutes = new Set(['/story360.js', '/license-key.js']);
+const blockedLocalRoutes = new Set(['/story360.js', '/license-key.js', '/user.js']);
 const tinyPanoramaDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 let activeRouteOptions = {};
 let e2eHttpServer = null;

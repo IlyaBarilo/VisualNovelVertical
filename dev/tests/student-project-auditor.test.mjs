@@ -184,6 +184,8 @@ test('аудитор разрешает только известный сост
     'engine/panorama-marks-controller.js',
     'tools/convert-360-img-to-js.html',
     'docs/examples/story-example.js',
+    'user-example.js',
+    'docs/examples/user-example.js',
     'docs/custom/teacher-guide.md',
     'docs/custom/preview.webp',
     'assets/custom/image.jpg',
@@ -236,6 +238,22 @@ test('аудитор разрешает только известный сост
       return issue.code === 'FILE_NOT_ALLOWED' && issue.path === filePath;
     }), filePath + ' должен получать ошибку allowlist в полном аудите.');
   }
+});
+
+// Известный user.js не получает автоматический допуск: произвольное расширение проверяется вручную.
+test('аудитор требует ручной проверки user.js, но принимает штатные примеры', async function() {
+  const { core } = await loadStudentAuditorCore();
+  const files = ['user.js', 'user-example.js', 'docs/examples/user-example.js'];
+  const issues = Array.from(core.inspectInventory(files.map(function toRecord(filePath) {
+    return { path: filePath, size: 1 };
+  }), []));
+  assert.equal(core.getProjectFileAllowReason('user.js', []), '');
+  assert.notEqual(core.getProjectFileAllowReason('assets/user.js', []), '');
+  const userIssues = issues.filter(function selectUserIssue(issue) { return files.includes(issue.path); });
+  assert.equal(userIssues.length, 1);
+  assert.equal(userIssues[0].path, 'user.js');
+  assert.equal(userIssues[0].code, 'USER_EXTENSION_REVIEW');
+  assert.equal(userIssues[0].level, 'incomplete');
 });
 
 // Проверяет дополнительные JS, старые панорамные пакеты и незарегистрированный HTML по дереву проекта.

@@ -2,7 +2,7 @@
   "name": "vn-vertical-engine-tests",
   "private": true,
   "scripts": {
-    "lint": "cd .. && eslint \"engine/*.js\" \"story-example.js\" \"dev/scripts/**/*.mjs\" \"dev/tests/**/*.mjs\" \"dev/playwright.config.mjs\" \"eslint.config.mjs\"",
+    "lint": "cd .. && eslint \"engine/*.js\" \"*-example.js\" \"dev/scripts/**/*.mjs\" \"dev/tests/**/*.mjs\" \"dev/playwright.config.mjs\" \"eslint.config.mjs\"",
     "test:typecheck": "tsc -p tsconfig.checkjs.json",
     "test": "node --test",
     "test:parser": "node --test tests/parser.test.mjs tests/meta.test.mjs tests/diagnostics.test.mjs tests/transitions.test.mjs tests/branching.test.mjs tests/variables.test.mjs tests/assets.test.mjs tests/media-options.test.mjs tests/scene-actions.test.mjs tests/story360-commands.test.mjs tests/loader-stats.test.mjs",

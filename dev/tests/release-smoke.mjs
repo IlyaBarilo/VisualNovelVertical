@@ -10,7 +10,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const developerRoot = path.dirname(fileURLToPath(new URL('../package.json', import.meta.url)));
 const fixtureStoryPath = fileURLToPath(new URL('./e2e/fixtures/story-fixture.js', import.meta.url));
 const reportRoot = path.join(developerRoot, '.playwright', 'release-smoke');
-const optionalScriptPaths = new Set(['/license-key.js', '/story360.js']);
+const optionalScriptPaths = new Set(['/license-key.js', '/story360.js', '/user.js']);
 const fileSmokePanoramaRelativePath = 'assets/360/__release-smoke__/file-smoke-360.css';
 const fileSmokePanoramaDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 const supportedSmokeBrowsers = new Set(['chromium', 'firefox', 'msedge']);
@@ -603,12 +603,12 @@ async function runFileBrowserSmoke(releaseRoot, fixtures, archivePath, browserNa
       );
     }, fileSmokePanoramaRelativePath, { timeout: 15_000 });
 
-    // Отсутствующие story360.js и license-key.js являются штатными; остальные локальные ошибки скрывать нельзя.
+    // Отсутствующие story360.js, license-key.js и user.js штатны; остальные локальные ошибки скрывать нельзя.
     var optionalFailures = diagnostics.failedRequests.filter(function(request) {
-      return /\/(?:story360|license-key)\.js$/i.test(new URL(request.url).pathname);
+      return /\/(?:story360|license-key|user)\.js$/i.test(new URL(request.url).pathname);
     });
     var unexpectedFailedRequests = diagnostics.failedRequests.filter(function(request) {
-      return !/\/(?:story360|license-key)\.js$/i.test(new URL(request.url).pathname);
+      return !/\/(?:story360|license-key|user)\.js$/i.test(new URL(request.url).pathname);
     });
     var unexpectedConsoleErrors = diagnostics.consoleErrors.filter(function(message) {
       return !(optionalFailures.length > 0 && message === 'Failed to load resource: net::ERR_FILE_NOT_FOUND');

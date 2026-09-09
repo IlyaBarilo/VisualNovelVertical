@@ -29,6 +29,7 @@ export default [
       'engine/*.js',
       'license-key.js',
       'story-example.js',
+      'user-example.js',
       'story.js',
       'dev/tests/e2e/fixtures/*.js'
     ],

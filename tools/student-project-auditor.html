@@ -250,7 +250,7 @@
 
     /* STUDENT_PROJECT_AUDITOR_CORE_START */
 
-    const AUDITOR_VERSION = '2.2';
+    const AUDITOR_VERSION = '2.3';
     const SUPPORTED_GAME_PROTOCOL_VERSION = '2';
     const SUPPORTED_STORY360_FORMAT_VERSION = 1;
     const MAX_FILE_COUNT = 10000;
@@ -270,6 +270,10 @@
       'story360.js',
       'story-example.js',
       'docs/examples/story-example.js',
+      'user-example.js',
+      'docs/examples/user-example.js',
+      // Путь расширения известен, но его произвольный код требует отдельной ручной проверки ниже.
+      'user.js',
       'engine/autosave-controller.js',
       'engine/autosave-payload.js',
       'engine/autosave-storage.js',
@@ -1044,7 +1048,7 @@
       return issues;
     }
 
-    // Проверяет состав проекта и отмечает дополнительные исполняемые или неоднозначные файлы.
+    // Проверяет состав проекта; известный user.js оставляет проверку неполной до ручного анализа его произвольного кода.
     function inspectInventory(records, registeredGamePaths) {
       const issues = [];
       const lowerPathMap = new Map();
@@ -1072,6 +1076,9 @@
         }
         if ((extension === '.js' || extension === '.mjs') && !TRUSTED_JAVASCRIPT_PATHS.has(lowerPath)) {
           issues.push(createIssue('error', 'UNEXPECTED_JAVASCRIPT', 'Найден дополнительный JavaScript вне разрешённого состава.', record.path));
+        }
+        if (lowerPath === 'user.js') {
+          issues.push(createIssue('incomplete', 'USER_EXTENSION_REVIEW', 'Авторский user.js имеет доступ к странице, хранилищу и сети. До запуска и публикации отдельно проверьте его код и подключаемые сервисы; содержимое user.js не включается в пакет проверки.', record.path));
         }
         if (extension === '.css' && lowerPath !== 'engine/engine.css' && !/-360(?:-[a-z0-9_-]+)?\.css$/i.test(record.path)) {
           issues.push(createIssue('error', 'UNEXPECTED_CSS', 'Дополнительный CSS запрещён; стили мини-игры должны быть встроены в её HTML.', record.path));

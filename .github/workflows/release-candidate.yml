@@ -91,6 +91,7 @@ jobs:
           # Все перечисленные файлы обязательны: обычный cp останавливает job при их отсутствии.
           cp index.html "build/$APP_NAME/"
           cp story-example.js "build/$APP_NAME/"
+          cp user-example.js "build/$APP_NAME/"
           cp README.md "build/$APP_NAME/"
           cp README-EN.md "build/$APP_NAME/"
           cp SECURITY.md "build/$APP_NAME/"
@@ -129,6 +130,8 @@ jobs:
           cp engine/visual-transition-controller.js "build/$APP_NAME/engine/"
 
           cp story-example.js "build/$APP_NAME/docs/examples/"
+          cp user-example.js "build/$APP_NAME/docs/examples/"
+          cp docs/user-script.md "build/$APP_NAME/docs/"
           cp docs/specs/spec-story.md "build/$APP_NAME/docs/specs/"
           cp docs/specs/spec-game.md "build/$APP_NAME/docs/specs/"
           cp docs/security/threat-model.md "build/$APP_NAME/docs/security/"
@@ -188,12 +191,14 @@ jobs:
           cd build
           zip -r "../${APP_NAME}-${VERSION}.zip" "$APP_NAME"
 
-          # Update-архив не содержит пользовательские assets и корневые файлы истории.
+          # Update-архив не содержит пользовательские assets, файлы истории и расширения.
           # Справочный пример остаётся только в docs/examples, чтобы не перезаписать рабочий файл пользователя.
           cp -r "$APP_NAME" "${APP_NAME}-update"
           rm -rf "${APP_NAME}-update/assets"
           rm -f "${APP_NAME}-update/story.js"
           rm -f "${APP_NAME}-update/story-example.js"
+          rm -f "${APP_NAME}-update/user.js"
+          rm -f "${APP_NAME}-update/user-example.js"
           zip -r "../${APP_NAME}-${VERSION}-update.zip" "${APP_NAME}-update"
           cd ..
 
@@ -223,6 +228,8 @@ jobs:
 
           # Полный архив должен содержать пример, ассеты, runtime и все авторские инструменты.
           grep -Fxq "${APP_NAME}/story-example.js" build/full-zip-contents.txt
+          grep -Fxq "${APP_NAME}/user-example.js" build/full-zip-contents.txt
+          grep -Fxq "${APP_NAME}/docs/user-script.md" build/full-zip-contents.txt
           grep -Fxq "${APP_NAME}/assets/" build/full-zip-contents.txt
           grep -Fxq "${APP_NAME}/release-manifest.json" build/full-zip-contents.txt
           grep -Fxq "${APP_NAME}/engine/autosave-controller.js" build/full-zip-contents.txt
@@ -273,21 +280,23 @@ jobs:
           grep -Fxq "${APP_NAME}-update/SECURITY.md" build/update-zip-contents.txt
           grep -Fxq "${APP_NAME}-update/docs/security/threat-model.md" build/update-zip-contents.txt
           grep -Fxq "${APP_NAME}-update/docs/examples/story-example.js" build/update-zip-contents.txt
+          grep -Fxq "${APP_NAME}-update/docs/examples/user-example.js" build/update-zip-contents.txt
+          grep -Fxq "${APP_NAME}-update/docs/user-script.md" build/update-zip-contents.txt
           grep -Fxq "${APP_NAME}-update/tools/student-project-auditor.html" build/update-zip-contents.txt
           grep -Fxq "${APP_NAME}-update/docs/student-project-review.md" build/update-zip-contents.txt
           grep -Fxq "${APP_NAME}-update/docs/360-first-steps.md" build/update-zip-contents.txt
           grep -Fxq "${APP_NAME}-update/tools/panorama-cleaner.html" build/update-zip-contents.txt
 
-          # Developer-файлы не должны попадать ни в один пользовательский ZIP.
-          if grep -Eq "^${APP_NAME}/(dev/|tests/|node_modules/|playwright-report/|test-results/|package(-lock)?\\.json$|playwright\\.config\\.mjs$|docs/TESTING\\.md$)" build/full-zip-contents.txt; then
-            echo "Полный архив содержит developer-файлы."
+          # Developer-файлы и рабочий user.js не должны попадать в официальные ZIP.
+          if grep -Eq "^${APP_NAME}/(dev/|tests/|node_modules/|playwright-report/|test-results/|package(-lock)?\\.json$|playwright\\.config\\.mjs$|docs/TESTING\\.md$|user\\.js$)" build/full-zip-contents.txt; then
+            echo "Полный архив содержит рабочий user.js или developer-файлы."
             exit 1
           fi
           if grep -Eiq "^${APP_NAME}/assets/360/.+-360(-[^/]+)?\\.js$" build/full-zip-contents.txt; then
             echo "Полный архив содержит запрещённый панорамный JS-пакет."
             exit 1
           fi
-          if grep -Eq "^${APP_NAME}-update/(assets/|story\\.js$|story-example\\.js$|dev/|tests/|node_modules/|playwright-report/|test-results/|package(-lock)?\\.json$|playwright\\.config\\.mjs$|docs/TESTING\\.md$)" build/update-zip-contents.txt; then
+          if grep -Eq "^${APP_NAME}-update/(assets/|story\\.js$|story-example\\.js$|dev/|tests/|node_modules/|playwright-report/|test-results/|package(-lock)?\\.json$|playwright\\.config\\.mjs$|docs/TESTING\\.md$|user\\.js$|user-example\\.js$)" build/update-zip-contents.txt; then
             echo "Update-архив содержит пользовательские данные или developer-файлы."
             exit 1
           fi

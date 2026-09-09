@@ -51,13 +51,18 @@ standalone HTML mini-games can be added when they support the experience.
 
 If `story.js` is missing, the engine automatically loads `story-example.js`.
 
+Optional `user.js` can add custom notices, buttons, and integrations. Copy
+`user-example.js` to `user.js` for a demonstration with inline styles and
+fictional analytics that sends no data. See the [user.js guide (Russian)](docs/user-script.md)
+before adapting the example; it is not a ready-made compliance solution.
+
 ### Full package or update package
 
 - `vn-vertical-engine-latest.zip` is the complete package with demo media,
   360° scenes, mini-games, and tools.
 - `vn-vertical-engine-latest-update.zip` updates an existing project without
-  replacing `assets/`, `story.js`, or the root `story-example.js`. A current
-  reference example is included as `docs/examples/story-example.js`.
+  replacing `assets/`, `story.js`, `user.js`, or the root `story-example.js`
+  and `user-example.js`. Current reference examples are included in `docs/examples/`.
 
 See [First Steps](FIRST-STEPS-EN.md) for the recommended workflow.
 
@@ -293,6 +298,8 @@ project/
 ├── index.html                         entry point
 ├── story-example.js                   demonstration story
 ├── story.js                           your story, created separately
+├── user-example.js                    custom interface demonstration
+├── user.js                            optional author-owned extension
 ├── story360.js                        optional 360° space map
 │
 ├── engine/
@@ -363,10 +370,10 @@ project/
 from a clean copy or untracked by Git; the demo falls back to
 `story-example.js`.
 
-The update ZIP excludes `assets/`, `story.js`, and the root
-`story-example.js`, so it does not overwrite an existing story or its media.
+The update ZIP excludes `assets/`, `story.js`, `user.js`, and the root
+`story-example.js` and `user-example.js`, preserving author-owned content.
 The current reference story remains available as
-`docs/examples/story-example.js`.
+`docs/examples/story-example.js`; the extension example is in `docs/examples/user-example.js`.
 
 Both release archives include `release-manifest.json` with the engine version,
 source Git commit, supported format versions, and SHA-256 values of the runtime

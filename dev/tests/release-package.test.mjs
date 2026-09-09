@@ -23,8 +23,20 @@ const requiredReviewDocuments = [
 
 // Перечисляет руководства из README, которые должны оставаться доступными внутри полного и update-архивов.
 const requiredReleaseGuides = [
-  'docs/360-first-steps.md'
+  'docs/360-first-steps.md',
+  'docs/user-script.md'
 ];
+
+// Проверяет доставку примера и сохранение авторского расширения независимо от локальных исключений Git.
+test('релиз включает пример user.js и не заменяет авторский файл', async function() {
+  const candidateSource = await readRepositoryFile('.github/workflows/release-candidate.yml');
+  await access(path.join(repositoryRoot, 'user-example.js'));
+  assertRequiredReleaseCopy(candidateSource, 'user-example.js', '"build/$APP_NAME/"');
+  assertRequiredReleaseCopy(candidateSource, 'user-example.js', '"build/$APP_NAME/docs/examples/"');
+  assert.ok(candidateSource.includes('rm -f "${APP_NAME}-update/user.js"'));
+  assert.ok(candidateSource.includes('rm -f "${APP_NAME}-update/user-example.js"'));
+  assert.equal(candidateSource.includes('cp user.js '), false);
+});
 
 // Перечисляет документы безопасности, которые должны сопровождать runtime в обоих пользовательских архивах.
 const requiredSecurityDocuments = [
@@ -382,7 +394,9 @@ test('релизный workflow проверяет фактический сос
   assert.ok(candidateSource.includes('Полный архив содержит запрещённый панорамный JS-пакет.'));
   assert.ok(candidateSource.includes('${APP_NAME}/(dev/|tests/'));
   assert.ok(candidateSource.includes('${APP_NAME}-update/(assets/|story\\\\.js$|story-example\\\\.js$|dev/'));
-  assert.ok(candidateSource.includes('node_modules/|playwright-report/|test-results/|package(-lock)?\\\\.json$|playwright\\\\.config\\\\.mjs$|docs/TESTING\\\\.md$)'));
+  // Сохраняем прежние исключения и проверяем новые авторские файлы; список больше не заканчивается на TESTING.md.
+  assert.ok(candidateSource.includes('node_modules/|playwright-report/|test-results/|package(-lock)?\\\\.json$|playwright\\\\.config\\\\.mjs$|docs/TESTING\\\\.md$|user\\\\.js$'));
+  assert.ok(candidateSource.includes('user\\\\.js$|user-example\\\\.js$)'));
 });
 
 // Закрепляет Windows smoke настоящего Edge и Firefox после упаковки полного ZIP и до выдачи artifact пользователю.
