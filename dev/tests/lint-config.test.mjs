@@ -19,7 +19,7 @@ function listTrackedFiles() {
 test('ESLint проверяет runtime и тестовый код в отдельной CI-задаче', async function() {
   const [packageSource, configSource, workflowSource] = await Promise.all([
     readFile(path.join(repositoryRoot, 'dev', 'package.json'), 'utf8'),
-    readFile(path.join(repositoryRoot, 'eslint.config.mjs'), 'utf8'),
+    readFile(path.join(repositoryRoot, 'dev', 'eslint.config.mjs'), 'utf8'),
     readFile(path.join(repositoryRoot, '.github', 'workflows', 'tests.yml'), 'utf8')
   ]);
   const packageData = JSON.parse(packageSource);

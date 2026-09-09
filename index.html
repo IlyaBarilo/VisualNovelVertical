@@ -464,10 +464,12 @@
       function loadUserExtension() {
         var root = null;
 
-        // Убирает частично созданный интерфейс при отказе init; произвольные побочные эффекты авторского JS не откатываются.
+        // Убирает частичный интерфейс и дублирует причину строкой для одинаковой диагностики во всех браузерах.
+        // Исходный объект ошибки остаётся вторым аргументом console.warn, чтобы консоль сохранила stack trace.
         function reportUserError(error) {
           if (root) root.remove();
-          console.warn("[User] Расширение user.js отключено:", error);
+          var reason = error && error.message ? String(error.message) : String(error);
+          console.warn("[User] Расширение user.js отключено: " + reason, error);
         }
 
         loadScript("user.js", { optional: true }).then(function(result) {

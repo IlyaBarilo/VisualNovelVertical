@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 
-// Корневая конфигурация загружает dev-зависимости из единственного тестового package.json проекта.
-const loadDevDependency = createRequire(new URL('./dev/package.json', import.meta.url));
+// Конфигурация из dev загружает зависимости из расположенного рядом package.json.
+const loadDevDependency = createRequire(new URL('./package.json', import.meta.url));
 const globals = loadDevDependency('globals');
 
 // Набор ограничен правилами, которые находят вероятные дефекты и не навязывают форматирование.
@@ -57,7 +57,7 @@ export default [
   },
   {
     name: 'Node.js ESM и автоматические тесты',
-    files: ['dev/**/*.mjs', 'eslint.config.mjs'],
+    files: ['dev/**/*.mjs'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
